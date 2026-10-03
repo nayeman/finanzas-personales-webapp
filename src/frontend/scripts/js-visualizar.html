@@ -45,7 +45,7 @@
                 filtroMes: (d, mes) => !d.fecha || d.fecha.startsWith(mes),
                 tituloTexto: (mes) => {
                     const corto = mesCorto(mes);
-                    return corto ? `Deudas Activas · ${corto}` : "Deudas Activas · Todos los meses";
+                    return corto ? `Deudas · ${corto}` : "Deudas · Todos los meses";
                 },
                 renderFila: (d) => this.crearFilaDeuda(d),
             }).init();
