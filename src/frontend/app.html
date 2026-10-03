@@ -15,16 +15,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <?!= includePartial("css"); ?>
+  <?!= includePartial("layout/css"); ?>
 </head>
 
 <body>
-  <?!= includePartial("header"); ?>
+  <?!= includePartial("layout/header"); ?>
   <main class="tab-content">
-    <?!= includePartial("dashboard"); ?>
-    <?!= includePartial("registrar"); ?>
-    <?!= includePartial("deudas"); ?>
-    <?!= includePartial("visualizar"); ?>
+    <?!= includePartial("pages/dashboard"); ?>
+    <?!= includePartial("pages/registrar"); ?>
+    <?!= includePartial("pages/deudas"); ?>
+    <?!= includePartial("pages/visualizar"); ?>
   </main>
 
   <!-- Modal global de confirmación para el CRUD (crear / actualizar / eliminar) -->
@@ -47,16 +47,16 @@
     </div>
   </div>
 
-  <?!= includePartial("footer"); ?>
+  <?!= includePartial("layout/footer"); ?>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.js"></script>
-  <?!= includePartial("js-utils"); ?>
-  <?!= includePartial("js-dashboard"); ?>
-  <?!= includePartial("js-registrar"); ?>
-  <?!= includePartial("js-deudas"); ?>
-  <?!= includePartial("js-tabla"); ?>
-  <?!= includePartial("js-visualizar"); ?>
-  <?!= includePartial("js-main"); ?>
+  <?!= includePartial("scripts/js-utils"); ?>
+  <?!= includePartial("scripts/js-dashboard"); ?>
+  <?!= includePartial("scripts/js-registrar"); ?>
+  <?!= includePartial("scripts/js-deudas"); ?>
+  <?!= includePartial("scripts/js-tabla"); ?>
+  <?!= includePartial("scripts/js-visualizar"); ?>
+  <?!= includePartial("scripts/js-main"); ?>
 </body>
 
 </html>
