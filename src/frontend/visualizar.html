@@ -72,10 +72,24 @@
             </button>
           </div>
           
+          <div class="d-flex justify-content-between align-items-center mb-2 gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-2">
+              <span class="small text-muted">Show</span>
+              <select class="form-select form-select-sm" id="dd-page-size" style="width:auto">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span class="small text-muted">entries</span>
+            </div>
+            <input class="form-control form-control-sm" id="dd-search" placeholder="Search…" style="max-width:180px" aria-label="Buscar deuda">
+          </div>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-2" id="deudas-table">
               <thead class="table-light">
                 <tr>
+                  <th scope="col" class="d-none d-md-table-cell" style="width: 40px;"><input type="checkbox" id="dd-select-all" aria-label="Seleccionar todas las deudas"></th>
                   <th scope="col">Persona/Entidad</th>
                   <th scope="col" class="text-end">Total (COP)</th>
                   <th scope="col" class="text-end">Abonado (COP)</th>
@@ -85,6 +99,10 @@
               </thead>
               <tbody id="deudas-body"></tbody>
             </table>
+          </div>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="small text-muted" id="dd-info">Showing 0 to 0 of 0 entries</span>
+            <nav aria-label="Paginación de deudas"><ul class="pagination pagination-sm mb-0" id="dd-pagination"></ul></nav>
           </div>
         </div>
 

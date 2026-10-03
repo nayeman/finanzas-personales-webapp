@@ -1,0 +1,191 @@
+<script>
+// Módulo Tabla — fábrica de tablas con búsqueda, paginación y selección en cliente.
+    // La usan las tablas de Movimientos y deudas para no repetir el mismo código del DataTable.
+
+    /**
+     * Crea una tabla paginada con búsqueda, selección de filas y filtro opcional por mes.
+     * @param {{
+     *   body:string, search:string, pageSize:string, info:string, pagination:string,
+     *   selectAll:string, colspan:number, vacio?:string,
+     *   mes?:string, titulo?:string,
+     *   filtroMes?:(r:Object, mes:string)=>boolean,
+     *   tituloTexto?:(mes:string)=>string,
+     *   renderFila:(r:Object)=>HTMLTableRowElement
+     * }} cfg Referencias de elementos + callbacks de la tabla.
+     * @returns {Object} Instancia con init/setDatos/aplicarFiltro/seleccionadas.
+     */
+    function crearTabla(cfg) {
+        const t = {
+            datos:    [],   // array completo cargado del backend
+            filtrado: [],   // array tras aplicar mes + búsqueda
+            pagina:   1,    // página actual (1-indexed)
+            pageSize: 10,   // filas por página
+
+            el: {
+                body:       document.getElementById(cfg.body),
+                search:     document.getElementById(cfg.search),
+                pageSize:   document.getElementById(cfg.pageSize),
+                info:       document.getElementById(cfg.info),
+                pagination: document.getElementById(cfg.pagination),
+                selectAll:  document.getElementById(cfg.selectAll),
+                mes:        cfg.mes ? document.getElementById(cfg.mes) : null,
+                titulo:     cfg.titulo ? document.getElementById(cfg.titulo) : null,
+            },
+
+            /** Enlaza los eventos y deja la tabla lista (default: mes actual si tiene filtro). */
+            init() {
+                if (this.el.mes) {
+                    const hoy = new Date();
+                    this.el.mes.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+                    this.el.mes.addEventListener("change", () => {
+                        this.pagina = 1;
+                        this.aplicarFiltro();
+                    });
+                }
+
+                // Búsqueda en tiempo real — reinicia a página 1
+                this.el.search.addEventListener("input", () => {
+                    this.pagina = 1;
+                    this.aplicarFiltro();
+                });
+
+                // Cambio de tamaño de página — reinicia a página 1
+                this.el.pageSize.addEventListener("change", () => {
+                    this.pageSize = Number(this.el.pageSize.value);
+                    this.pagina   = 1;
+                    this.renderPagina();
+                });
+
+                // Checkbox "seleccionar todos" → marcar/desmarcar las filas visibles
+                this.el.selectAll.addEventListener("change", (e) => {
+                    this.el.body.querySelectorAll(".dt-row-check").forEach((cb) => {
+                        cb.checked = e.target.checked;
+                    });
+                });
+
+                this.actualizarTitulo();
+                return this;
+            },
+
+            /** Recibe los registros del backend, vuelve a la página 1 y repinta. */
+            setDatos(rows) {
+                this.datos  = rows || [];
+                this.pagina = 1;
+                this.aplicarFiltro();
+            },
+
+            /**
+             * Pinta "Cargando…" en el cuerpo con el colspan de la tabla.
+             * @param {string} [texto]
+             */
+            cargando(texto) {
+                this.el.body.innerHTML =
+                    `<tr><td colspan="${cfg.colspan}" class="text-center text-muted py-3 small">${texto || "Cargando…"}</td></tr>`;
+            },
+
+            /**
+             * Pinta un error en el cuerpo con el colspan de la tabla.
+             * @param {string} html Mensaje YA escapado con esc().
+             */
+            error(html) {
+                this.el.body.innerHTML =
+                    `<tr><td colspan="${cfg.colspan}" class="text-center text-danger py-3 small">${html}</td></tr>`;
+            },
+
+            /**
+             * Filtra por mes (si la tabla tiene filtro) y por el texto de búsqueda.
+             */
+            aplicarFiltro() {
+                const mes = this.el.mes ? this.el.mes.value : "";
+                const q   = this.el.search.value.trim().toLowerCase();
+
+                let base = this.datos;
+                if (mes && cfg.filtroMes) base = base.filter((r) => cfg.filtroMes(r, mes));
+                if (q) {
+                    base = base.filter((r) =>
+                        Object.values(r).some((v) => String(v).toLowerCase().includes(q)));
+                }
+
+                this.filtrado = base;
+                this.actualizarTitulo();
+                this.renderPagina();
+            },
+
+            /** Actualiza el título con el mes filtrado (solo si la tabla tiene tituloTexto). */
+            actualizarTitulo() {
+                if (!this.el.titulo || !cfg.tituloTexto) return;
+                const mes = this.el.mes ? this.el.mes.value : "";
+                this.el.titulo.textContent = cfg.tituloTexto(mes);
+            },
+
+            /** Renderiza la página actual en el tbody y actualiza info + paginación. */
+            renderPagina() {
+                const total = this.filtrado.length;
+                const start = (this.pagina - 1) * this.pageSize;
+                const end   = Math.min(start + this.pageSize, total);
+                const filasPagina = this.filtrado.slice(start, end);
+
+                this.el.body.innerHTML = "";
+                if (filasPagina.length === 0) {
+                    this.el.body.innerHTML =
+                        `<tr><td colspan="${cfg.colspan}" class="text-center text-muted py-3 small">${cfg.vacio || "Sin registros."}</td></tr>`;
+                } else {
+                    filasPagina.forEach((r) => this.el.body.appendChild(cfg.renderFila(r)));
+                }
+
+                this.el.info.textContent = total === 0
+                    ? "Showing 0 to 0 of 0 entries"
+                    : `Showing ${start + 1} to ${end} of ${total} entries`;
+
+                this.renderPaginacion(total);
+                this.el.selectAll.checked = false;
+            },
+
+            /**
+             * Renderiza los controles de paginación (<, 1, 2, ..., >).
+             * @param {number} total Total de filas en this.filtrado.
+             */
+            renderPaginacion(total) {
+                const pages = Math.ceil(total / this.pageSize) || 1;
+                this.el.pagination.innerHTML = "";
+
+                /** Crea un <li class="page-item"> para la paginación. */
+                const crearBtn = (label, page, disabled, active) => {
+                    const li = document.createElement("li");
+                    li.className = `page-item${disabled ? " disabled" : ""}${active ? " active" : ""}`;
+                    li.innerHTML = `<a class="page-link" href="#" aria-label="Página ${label}">${label}</a>`;
+                    if (!disabled && !active) {
+                        li.addEventListener("click", (e) => { e.preventDefault(); this.irAPagina(page); });
+                    }
+                    return li;
+                };
+
+                this.el.pagination.appendChild(crearBtn("‹", this.pagina - 1, this.pagina === 1));
+                for (let i = 1; i <= pages; i++) {
+                    this.el.pagination.appendChild(crearBtn(i, i, false, i === this.pagina));
+                }
+                this.el.pagination.appendChild(crearBtn("›", this.pagina + 1, this.pagina === pages));
+            },
+
+            /**
+             * Navega a una página específica.
+             * @param {number} p Número de página (1-indexed).
+             */
+            irAPagina(p) {
+                this.pagina = p;
+                this.renderPagina();
+            },
+
+            /**
+             * IDs de las filas marcadas con el checkbox.
+             * @returns {string[]}
+             */
+            seleccionadas() {
+                return Array.from(this.el.body.querySelectorAll(".dt-row-check:checked"))
+                    .map((cb) => cb.value);
+            },
+        };
+
+        return t;
+    }
+</script>
