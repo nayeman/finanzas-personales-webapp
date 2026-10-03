@@ -34,7 +34,7 @@
             google.script.run
                 .withSuccessHandler((cats) => {
                     this.catSelect.innerHTML = cats
-                        .map((c) => `<option value="${esc(c.id)}">${esc(c.nombre)}</option>`)
+                        .map((nombre) => `<option value="${esc(nombre)}">${esc(nombre)}</option>`)
                         .join("");
                     if (onLoad) onLoad();
                 })
@@ -47,7 +47,7 @@
         /**
          * Precarga el formulario con los datos de un movimiento existente para editarlo.
          * Navega automáticamente a la pestaña Registrar.
-         * @param {{ id:string, tipo:string, valor:number, categoria_id:string, fecha:string, descripcion:string, metodo_pago:string }} mov
+         * @param {{ id:string, tipo:string, valor:number, categoria:string, fecha:string, descripcion:string, metodo_pago:string }} mov
          */
         editarMovimiento(mov) {
             this.editMode = true;
@@ -64,8 +64,7 @@
 
             // L2: un solo camino para cargar categorías y luego seleccionar la correcta
             this.cargarCategorias(() => {
-                const opt = this.catSelect.querySelector(`option[value="${mov.categoria_id}"]`);
-                if (opt) opt.selected = true;
+                this.catSelect.value = mov.categoria || "";
             });
 
             bootstrap.Tab.getOrCreateInstance(document.getElementById("registrar-tab")).show();
@@ -100,7 +99,7 @@
                 id:           this.idField.value,
                 tipo:         document.getElementById("reg-tipo").value,
                 valor:        document.getElementById("reg-valor").value,
-                categoria_id: document.getElementById("reg-categoria").value,
+                categoria:     document.getElementById("reg-categoria").value,
                 fecha:        document.getElementById("reg-fecha").value,
                 descripcion:  document.getElementById("reg-descripcion").value,
                 metodo_pago:  document.getElementById("reg-metodo").value,

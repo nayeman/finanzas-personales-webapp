@@ -20,7 +20,7 @@ function getDashboard(filtroMes) {
   const mesActual  = filtroMes || Utilities.formatDate(hoy, tz, "yyyy-MM");
 
   // ── Movimientos del mes y agrupar historial ──
-  // Columnas usadas: MOV_COL.fecha (1), MOV_COL.tipo (2), MOV_COL.valor (6)
+  // Columnas usadas: MOV_COL.fecha (1), MOV_COL.tipo (2), MOV_COL.valor (5)
   const movSheet = getSheet(SHEET_NAMES.movimientos);
   const movLast  = movSheet.getLastRow();
   let ingresos = 0;

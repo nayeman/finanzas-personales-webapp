@@ -17,4 +17,4 @@
 ## 📦 Modelo de Datos Resumido
 * **Movimientos:** Registro histórico de cada transacción de dinero (Ingreso o Gasto). Tabla **independiente**: no guarda ninguna referencia a deudas.
 * **Deudas:** Registro maestro de pasivos. Define a quién se le debe, el total y el abonado (campos manuales); saldo y estado se calculan automáticamente en Sheets con fórmulas propias de la hoja (sin vínculos con Movimientos).
-* **Categorias:** Tabla maestra simple (ID y Nombre) para clasificar las transacciones de forma coherente.
+* **Categorias:** Tabla maestra simple (solo Nombre) para clasificar las transacciones de forma coherente.

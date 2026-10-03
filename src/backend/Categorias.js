@@ -3,20 +3,16 @@
 /* global getSheet, SHEET_NAMES */
 
 /**
- * Devuelve todas las categorías.
- * Se usa en el formulario de Registrar y para resolver nombres en getMovimientos().
- * @returns {Array<{id:string, nombre:string}>}
+ * Devuelve los nombres de las categorías (columna única `nombre`).
+ * Se usa para poblar los <select> de los formularios de Registrar y Deudas.
+ * @returns {Array<string>}
  */
 function getCategorias() {
   const sheet = getSheet(SHEET_NAMES.categorias);
   const last  = sheet.getLastRow();
   if (last < 2) return [];
 
-  const rows = sheet.getRange(2, 1, last - 1, 2).getValues();
-  return rows
-    .filter((r) => r[0] !== "")
-    .map((r) => ({
-      id:     String(r[0]),
-      nombre: String(r[1]),
-    }));
+  return sheet.getRange(2, 1, last - 1, 1).getValues().flat()
+    .map((n) => String(n).trim())
+    .filter((n) => n !== "");
 }

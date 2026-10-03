@@ -16,12 +16,12 @@
         cargarCategorias() {
             google.script.run
                 .withSuccessHandler((cats) => {
-                    this.catSelect.innerHTML = `<option value="CAT-008">Otros</option>` + cats
-                        .map((c) => `<option value="${esc(c.id)}">${esc(c.nombre)}</option>`)
+                    this.catSelect.innerHTML = cats
+                        .map((nombre) => `<option value="${esc(nombre)}">${esc(nombre)}</option>`)
                         .join("");
                 })
                 .withFailureHandler(() => {
-                    this.catSelect.innerHTML = "<option value='CAT-008'>Error al cargar</option>";
+                    this.catSelect.innerHTML = "<option value=''>Error al cargar</option>";
                 })
                 .getCategorias();
         },
@@ -41,7 +41,7 @@
             document.getElementById("deuda-id").value = d.id;
             document.getElementById("deuda-persona").value = d.persona;
             document.getElementById("deuda-total").value = d.total_deuda;
-            this.catSelect.value = d.categoria_id;
+            this.catSelect.value = d.categoria || "";
 
             document.getElementById("deuda-abonado").value = d.abonado || 0;
 
@@ -64,7 +64,7 @@
             const data = {
                 persona:      document.getElementById("deuda-persona").value,
                 total_deuda:  document.getElementById("deuda-total").value,
-                categoria_id: document.getElementById("deuda-categoria").value,
+                categoria:     document.getElementById("deuda-categoria").value,
                 abonado:      document.getElementById("deuda-abonado").value,
             };
             if (idValue) data.id = idValue;

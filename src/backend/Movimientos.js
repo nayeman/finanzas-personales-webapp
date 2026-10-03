@@ -1,17 +1,17 @@
 // CRUD de movimientos (ingresos y gastos) en la hoja Movimientos.
 // Tabla independiente: no tiene relación con Deudas (sin deuda_id).
 /* exported saveMovimiento, updateMovimiento, deleteMovimiento, getMovimientos, MOV_HEADERS, MOV_COL */
-/* global getSheet, SHEET_NAMES, LockService, Session, Utilities, parseNumber, isValidDate, escapeFormulaText, getCategorias */
+/* global getSheet, SHEET_NAMES, LockService, Session, Utilities, parseNumber, isValidDate, escapeFormulaText */
 
 /**
  * Columnas de la hoja Movimientos en orden.
  * Exportado para que otros módulos (Dashboard.js) puedan derivar índices sin números mágicos.
  */
-const MOV_HEADERS = ["id", "fecha", "tipo", "categoria", "categoria_id", "descripcion", "valor", "metodo_pago"];
+const MOV_HEADERS = ["id", "fecha", "tipo", "categoria", "descripcion", "valor", "metodo_pago"];
 
 /**
  * Mapa de nombre de columna → índice 0-based.
- * Ejemplo: MOV_COL.valor === 6
+ * Ejemplo: MOV_COL.valor === 5
  * @type {Object.<string, number>}
  */
 const MOV_COL = MOV_HEADERS.reduce((acc, h, i) => { acc[h] = i; return acc; }, {});
@@ -20,7 +20,7 @@ const MOV_COL = MOV_HEADERS.reduce((acc, h, i) => { acc[h] = i; return acc; }, {
 
 /**
  * Guarda un nuevo movimiento en la hoja.
- * @param {{ tipo:string, valor:string|number, categoria_id:string, fecha:string, descripcion?:string, metodo_pago?:string }} data
+ * @param {{ tipo:string, valor:string|number, categoria:string, fecha:string, descripcion?:string, metodo_pago?:string }} data
  * @returns {{ row: number }} Número de fila donde se guardó.
  */
 function saveMovimiento(data) {
@@ -32,7 +32,7 @@ function saveMovimiento(data) {
   lock.waitLock(30000);
   try {
     const row = sheet.getLastRow() + 1;
-    sheet.getRange(row, 1, 1, MOV_HEADERS.length).setValues([[id, v.fecha, v.tipo, v.categoria, v.categoria_id, v.descripcion, v.valor, v.metodo_pago]]);
+    sheet.getRange(row, 1, 1, MOV_HEADERS.length).setValues([[id, v.fecha, v.tipo, v.categoria, v.descripcion, v.valor, v.metodo_pago]]);
     return { row };
   } finally {
     lock.releaseLock();
@@ -41,7 +41,7 @@ function saveMovimiento(data) {
 
 /**
  * Actualiza un movimiento existente buscándolo por id en la columna A.
- * @param {{ id:string, tipo:string, valor:string|number, categoria_id:string, fecha:string, descripcion?:string, metodo_pago?:string }} data
+ * @param {{ id:string, tipo:string, valor:string|number, categoria:string, fecha:string, descripcion?:string, metodo_pago?:string }} data
  * @returns {{ row: number }} Número de fila actualizada.
  * @throws {Error} Si el id no existe.
  */
@@ -51,7 +51,7 @@ function updateMovimiento(data) {
   const sheet = getSheet(SHEET_NAMES.movimientos);
   const row   = _findRowById(sheet, data.id);
   if (!row) throw new Error(`No se encontró el movimiento ${data.id}.`);
-  _writeRow(sheet, row, [v.fecha, v.tipo, v.categoria, v.categoria_id, v.descripcion, v.valor, v.metodo_pago]);
+  _writeRow(sheet, row, [v.fecha, v.tipo, v.categoria, v.descripcion, v.valor, v.metodo_pago]);
   return { row };
 }
 
@@ -74,16 +74,13 @@ function deleteMovimiento(id) {
 
 /**
  * Devuelve todos los movimientos como array de objetos, más recientes primero.
- * Resuelve el nombre de la categoría cruzando con la hoja Categorias.
- * @returns {Array<{id:string, fecha:string, tipo:string, categoria_id:string, categoria:string, descripcion:string, valor:number, metodo_pago:string}>}
+ * @returns {Array<{id:string, fecha:string, tipo:string, categoria:string, descripcion:string, valor:number, metodo_pago:string}>}
  */
 function getMovimientos() {
   const sheet = getSheet(SHEET_NAMES.movimientos);
   const last  = sheet.getLastRow();
   if (last < 3) return [];
 
-  // Mapa id → nombre de categoría para resolver en el map() sin N llamadas extra.
-  const cats = getCategorias().reduce((acc, c) => { acc[c.id] = c.nombre; return acc; }, {});
   const tz   = Session.getScriptTimeZone();
   const rows = sheet.getRange(3, 1, last - 2, MOV_HEADERS.length).getValues();
 
@@ -95,8 +92,7 @@ function getMovimientos() {
                       ? Utilities.formatDate(r[MOV_COL.fecha], tz, "yyyy-MM-dd")
                       : String(r[MOV_COL.fecha]),
       tipo:         String(r[MOV_COL.tipo]),
-      categoria_id: String(r[MOV_COL.categoria_id]),
-      categoria:    String(r[MOV_COL.categoria] || cats[String(r[MOV_COL.categoria_id])] || ""),
+      categoria:    String(r[MOV_COL.categoria] || ""),
       descripcion:  String(r[MOV_COL.descripcion] || ""),
       valor:        Number(r[MOV_COL.valor]) || 0,
       metodo_pago:  String(r[MOV_COL.metodo_pago] || ""),
@@ -107,11 +103,11 @@ function getMovimientos() {
 // ── Helpers privados (prefijo _ = no llamar desde otros archivos) ──
 
 /**
- * Escribe valores en columnas B-H de una fila usando LockService para concurrencia.
+ * Escribe valores en columnas B-G de una fila usando LockService para concurrencia.
  * Centraliza el patrón lock → setValues → release que antes se duplicaba.
  * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
  * @param {number} row Número de fila (1-indexed).
- * @param {Array} values Array de 7 valores (sin id): fecha, tipo, categoria, categoria_id, descripcion, valor, metodo_pago.
+ * @param {Array} values Array de 6 valores (sin id): fecha, tipo, categoria, descripcion, valor, metodo_pago.
  */
 function _writeRow(sheet, row, values) {
   const lock = LockService.getScriptLock();
@@ -123,7 +119,7 @@ function _writeRow(sheet, row, values) {
 /**
  * Valida y normaliza los datos de un movimiento recibidos del navegador.
  * @param {Object} data Datos sin confiar del formulario.
- * @returns {{ fecha:string, tipo:string, categoria:string, categoria_id:string, descripcion:string, valor:number, metodo_pago:string }}
+ * @returns {{ fecha:string, tipo:string, categoria:string, descripcion:string, valor:number, metodo_pago:string }}
  * @throws {Error} Si algún campo obligatorio es inválido.
  */
 function _validateMovimiento(data) {
@@ -139,10 +135,8 @@ function _validateMovimiento(data) {
   const valor = /** @type {number} */ (parseNumber(data.valor, "Valor", true));
   if (valor <= 0) throw new Error("El valor debe ser mayor a 0.");
 
-  const categoria_id = String(data.categoria_id || "CAT-008").trim();
-  const cats = getCategorias();
-  const catObj = cats.find(c => c.id === categoria_id);
-  const categoria = catObj ? catObj.nombre : "Otros";
+  const categoria = String(data.categoria || "").trim();
+  if (!categoria) throw new Error("La categoría es obligatoria.");
 
   const metodoRaw = String(data.metodo_pago || "Efectivo");
   const metodo_pago = metodoRaw.charAt(0).toUpperCase() + metodoRaw.slice(1).toLowerCase();
@@ -151,7 +145,6 @@ function _validateMovimiento(data) {
     fecha,
     tipo,
     categoria,
-    categoria_id,
     descripcion: escapeFormulaText(data.descripcion),
     valor,
     metodo_pago
