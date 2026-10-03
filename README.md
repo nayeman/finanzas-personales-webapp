@@ -76,3 +76,4 @@ npx --yes @google/clasp open-script     # abrir el editor web
 
 - [Guías de trabajo](./docs/004-guias/README.md)
 - [Requisitos y estructura de tablas](./docs/001-requisitos/03-estructura-tablas.md)
+- [Drive de Documentos](https://drive.google.com/drive/folders/1I7WWYwy6WkkaIz4Fy_OJ6VFyXJDrOOWr?usp=sharing)
