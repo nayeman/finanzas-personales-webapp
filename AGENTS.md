@@ -42,6 +42,6 @@ npx --yes @google/clasp version "<msg>" # instantánea inmutable
 
 ## Dónde mirar
 
-- Guías de trabajo: `docs/004-guias/` (01 entorno, 02 despliegue, 03 LSP, 05 estilo JavaScript).
+- Guías de trabajo: `docs/004-guias/` (01 entorno, 02 despliegue, 03 LSP, 05 estilo JavaScript, 06 sitio en Google Sites).
 - Requisitos de negocio: `docs/001-requisitos/`.
 - `.specify/` y `.opencode/commands/speckit.*` son plantillas de spec-kit sin personalizar (la constitución sigue en plantilla): ignósalas salvo que el usuario pida ese flujo.

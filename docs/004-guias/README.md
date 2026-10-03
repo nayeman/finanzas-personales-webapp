@@ -9,6 +9,7 @@ Paso a paso simple y directo para arrancar el proyecto **control-renal-diario** 
 3. [03 — Autocompletado y LSP](./03-autocompletado-lsp.md) — `jsconfig.json` + `@types/google-apps-script` para autocompletar `SpreadsheetApp`.
 4. [04 — Bitácora del proyecto](./04-bitacora-proyecto.md) — objetivo, pasos realizados, estado actual y próximos pasos.
 5. [05 — Estilo de JavaScript](./05-estilo-javascript.md) — convenciones de código y comentarios.
+6. [06 — Contenedor limpio en Google Sites](./06-sitio-google-sites.md) — incrustar la Web App sin banner de Google ni barras de Sites.
 
 ## Estructura del proyecto
 
