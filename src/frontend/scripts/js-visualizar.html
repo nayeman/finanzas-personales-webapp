@@ -162,21 +162,21 @@
         },
 
         /**
-         * Abre el modal global de confirmación para eliminar, mostrando los datos
-         * del registro en negrita para identificarlo de un vistazo.
+         * Abre el modal global de confirmación para eliminar con una frase
+         * corta que resume el registro (sujeto y monto en negrita).
          * @param {string} type "movimiento" o "deuda"
          * @param {Object} registro Registro completo a eliminar.
          */
         pedirConfirmacion(type, registro) {
-            const datos = type === "movimiento"
-                ? `${resaltar(capitalize(registro.tipo))} · ${resaltar(capitalize(registro.categoria))} · ${resaltar(fechaCorta(registro.fecha))} · ${resaltar(formatCOP(registro.valor))}`
-                : `${resaltar(registro.persona)} · ${resaltar(formatCOP(registro.total_deuda))} · ${resaltar(registro.estado)}`;
+            const esMovimiento = type === "movimiento";
+            const sujeto = esMovimiento
+                ? (capitalize(registro.descripcion) || capitalize(registro.categoria))
+                : registro.persona;
+            const monto = esMovimiento ? registro.valor : registro.total_deuda;
 
             Confirmar.mostrar({
                 titulo:  "Eliminar registro",
-                mensaje: `¿Seguro que quieres eliminar este registro? Esta acción no se puede deshacer.
-                  <div class="small text-muted mt-2 mb-1">Registro:</div>
-                  <div>${datos}</div>`,
+                mensaje: `¿Eliminar el registro de ${resaltar(sujeto)} por ${resaltar(formatCOP(monto))}?`,
                 textoOk: "Eliminar",
                 claseOk: "btn-danger",
                 textoProcesando: "Eliminando…",

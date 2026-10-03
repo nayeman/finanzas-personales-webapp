@@ -67,20 +67,14 @@
 
             const esEdicion = Boolean(idValue);
 
-            const detalle = `${resaltar(data.persona)} · ${resaltar(formatCOP(data.total_deuda))}${
-                data.abonado ? ` · Abonado: ${resaltar(formatCOP(data.abonado))}` : ""}`;
+            const frase = `la deuda de ${resaltar(data.persona)} por ${resaltar(formatCOP(data.total_deuda))}`;
 
             Confirmar.mostrar({
                 titulo: esEdicion ? "Actualizar registro" : "Crear registro",
                 mensaje: esEdicion
-                    ? `¿Seguro que quieres actualizar la deuda?
-                        <div class="small text-muted mt-2 mb-1">Deuda:</div>
-                        <div>${detalle}</div>
-                        <div class="mt-2">Los cambios quedarán guardados.</div>`
-                    : `¿Seguro que quieres crear la deuda?
-                        <div class="small text-muted mt-2 mb-1">Deuda:</div>
-                        <div>${detalle}</div>`,
-                textoOk: esEdicion ? "Actualizar" : "Guardar",
+                    ? `¿Actualizar ${frase}?`
+                    : `¿Crear ${frase}?`,
+                textoOk: esEdicion ? "Actualizar" : "Crear",
                 claseOk: "btn-primary",
                 textoProcesando: "Guardando…",
                 onConfirmar: () => this.guardar(data, esEdicion),
