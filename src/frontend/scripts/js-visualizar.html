@@ -27,8 +27,8 @@
                 tituloTexto: (mes) => {
                     const nombre = nombreMes(mes);
                     return nombre
-                        ? `Histórico de Movimientos · ${nombre}`
-                        : "Histórico de Movimientos · Todos los meses";
+                        ? `Movimientos · ${nombre.slice(0, 3)} ${nombre.split(" ").pop()}`
+                        : "Movimientos · Todos los meses";
                 },
                 renderFila: (r) => this.crearFilaMovimiento(r),
             }).init();
