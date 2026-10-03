@@ -1,6 +1,6 @@
 // Integración con Google Gemini API para consejos financieros.
 /* exported analizarFinanzas, llamarGemini */
-/* global getDashboard, PropertiesService, UrlFetchApp, ASESOR_PROMPT_REGLAS */
+/* global getDashboard, PropertiesService, UrlFetchApp, ASESOR_PROMPT_REGLAS, formatCOPTexto */
 
 /**
  * Llama a la API de Gemini con el resumen financiero actual (análisis rápido).
@@ -10,7 +10,12 @@
 function analizarFinanzas(pregunta) {
   // Obtenemos los datos actuales (usamos la misma función que alimenta el dashboard)
   const datos = getDashboard();
-  const balanceTexto = `Balance: $${datos.balance}\nIngresos: $${datos.ingresos}\nGastos: $${datos.gastos}`;
+  const balanceTexto = [
+    "Moneda: pesos colombianos (COP)",
+    `Balance: ${formatCOPTexto(datos.balance)}`,
+    `Ingresos: ${formatCOPTexto(datos.ingresos)}`,
+    `Gastos: ${formatCOPTexto(datos.gastos)}`
+  ].join("\n");
 
   const prompt = `${ASESOR_PROMPT_REGLAS}
 

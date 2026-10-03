@@ -1,5 +1,5 @@
 // Utilidades numéricas y de texto compartidas entre módulos del backend.
-/* exported parseNumber, isValidDate, escapeFormulaText */
+/* exported parseNumber, isValidDate, escapeFormulaText, formatCOPTexto */
 
 /**
  * Convierte un campo numérico opcional u obligatorio.
@@ -42,4 +42,16 @@ function isValidDate(value) {
 function escapeFormulaText(value) {
   const text = String(value || "").trim();
   return /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+}
+
+/**
+ * Formatea un monto como pesos colombianos (COP) para los prompts de la IA.
+ * Formato manual (punto como separador de miles) para no depender de Intl en Apps Script.
+ * @param {*} value Valor numérico.
+ * @returns {string} Ej. "$1.234.567" ("-$1.234.567" si es negativo).
+ */
+function formatCOPTexto(value) {
+  const n = Math.round(Number(value) || 0);
+  const grupo = String(Math.abs(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${n < 0 ? "-" : ""}$${grupo}`;
 }

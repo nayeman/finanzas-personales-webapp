@@ -1,6 +1,6 @@
 // Asesor financiero IA (chat): construye un prompt con contexto completo y llama a Gemini.
 /* exported preguntarAsesor, ASESOR_PROMPT_REGLAS */
-/* global llamarGemini, getDashboard, getDeudas, getMovimientos */
+/* global llamarGemini, getDashboard, getDeudas, getMovimientos, formatCOPTexto */
 
 /**
  * Instrucciones compartidas del asesor (una sola fuente de verdad).
@@ -42,6 +42,15 @@ Tu función es exclusivamente financiera.
 9. No modifiques los datos proporcionados por la aplicación.
 10. No agregues información que no sea necesaria para responder.
 11. No hagas recomendaciones financieras si el usuario no las solicita.
+
+# MONEDA
+
+Toda la información financiera de esta aplicación está expresada en PESOS COLOMBIANOS (COP).
+
+* El símbolo $ representa siempre pesos colombianos.
+* El punto (.) separa los miles y la coma (,) los decimales.
+* Responde siempre con montos en pesos colombianos; nunca los conviertas a otra moneda ni uses símbolos de otras divisas.
+* Si el usuario pregunta por otra moneda, aclara que los datos están en pesos colombianos.
 
 # DEUDAS
 
@@ -331,7 +340,7 @@ No muestres todo el contexto financiero si solamente necesitas un dato para resp
 
 # FORMATO DE DINERO
 
-Cuando muestres cantidades de dinero, utiliza un formato fácil de leer.
+Cuando muestres cantidades de dinero, utiliza pesos colombianos (COP) con el símbolo $ y el punto como separador de miles.
 
 Ejemplo:
 
@@ -402,9 +411,10 @@ function preguntarAsesor(historial, pregunta) {
   const dash = getDashboard();
   const contextoDash = [
     `Mes analizado: ${dash.mesActual}`,
-    `Ingresos: $${dash.ingresos}`,
-    `Gastos: $${dash.gastos}`,
-    `Balance: $${dash.balance}`
+    "Moneda: pesos colombianos (COP)",
+    `Ingresos: ${formatCOPTexto(dash.ingresos)}`,
+    `Gastos: ${formatCOPTexto(dash.gastos)}`,
+    `Balance: ${formatCOPTexto(dash.balance)}`
   ].join("\n");
 
   // ── Contexto 2: deudas (pendientes y pagadas con sus saldos) ──
@@ -413,7 +423,7 @@ function preguntarAsesor(historial, pregunta) {
     const deudas = getDeudas();
     if (deudas.length) {
       contextoDeudas = deudas
-        .map((d) => `- ${d.persona}: total $${d.total_deuda}, abonado $${d.abonado}, saldo $${d.saldo} (${d.estado})`)
+        .map((d) => `- ${d.persona}: total ${formatCOPTexto(d.total_deuda)}, abonado ${formatCOPTexto(d.abonado)}, saldo ${formatCOPTexto(d.saldo)} (${d.estado})`)
         .join("\n");
     }
   } catch {
@@ -426,7 +436,7 @@ function preguntarAsesor(historial, pregunta) {
     const movs = getMovimientos().slice(0, 10);
     if (movs.length) {
       contextoMovs = movs
-        .map((m) => `- ${m.fecha} | ${m.tipo} | ${m.categoria} | $${m.valor}`)
+        .map((m) => `- ${m.fecha} | ${m.tipo} | ${m.categoria} | ${formatCOPTexto(m.valor)}`)
         .join("\n");
     }
   } catch {
