@@ -20,7 +20,7 @@
         <!-- ── TAB: MOVIMIENTOS ── -->
         <div class="tab-pane fade show active" id="view-movimientos" role="tabpanel" aria-labelledby="view-movimientos-tab">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h5 mb-0">Historial</h2>
+            <h2 class="h5 mb-0" id="dt-title">Histórico de Movimientos</h2>
             <button class="btn btn-primary btn-sm" id="btn-agregar" type="button">
               <i class="bi bi-plus-lg" aria-hidden="true"></i> Gasto/Ingreso
             </button>
@@ -36,7 +36,11 @@
               </select>
               <span class="small text-muted">entries</span>
             </div>
-            <input class="form-control form-control-sm" id="dt-search" placeholder="Search…" style="max-width:180px" aria-label="Buscar movimiento">
+            <div class="d-flex align-items-center gap-2">
+              <input type="month" class="form-control form-control-sm" id="dt-filter-month" style="width:auto"
+                aria-label="Filtrar histórico por mes y año">
+              <input class="form-control form-control-sm" id="dt-search" placeholder="Search…" style="max-width:180px" aria-label="Buscar movimiento">
+            </div>
           </div>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-2" id="dt-table">

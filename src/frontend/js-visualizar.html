@@ -13,6 +13,8 @@
         el: {
             body:          document.getElementById("dt-body"),
             search:        document.getElementById("dt-search"),
+            mes:           document.getElementById("dt-filter-month"),
+            titulo:        document.getElementById("dt-title"),
             pageSize:      document.getElementById("dt-page-size"),
             info:          document.getElementById("dt-info"),
             pagination:    document.getElementById("dt-pagination"),
@@ -22,6 +24,12 @@
         },
 
         init() {
+            // Filtro por mes: por defecto, el mes actual (igual que el Dashboard)
+            const hoy = new Date();
+            const mesStr = String(hoy.getMonth() + 1).padStart(2, "0");
+            this.el.mes.value = `${hoy.getFullYear()}-${mesStr}`;
+            this.actualizarTitulo();
+
             // Botón Agregar → resetear formulario y navegar a Registrar
             this.el.btnAgregar.addEventListener("click", () => {
                 Registrar.resetForm();
@@ -30,6 +38,12 @@
 
             // Búsqueda en tiempo real — reinicia a página 1
             this.el.search.addEventListener("input", () => {
+                this.pagina = 1;
+                this.aplicarFiltro();
+            });
+
+            // Cambio de mes — reinicia a página 1 (valor vacío = todos los meses)
+            this.el.mes.addEventListener("change", () => {
                 this.pagina = 1;
                 this.aplicarFiltro();
             });
@@ -130,16 +144,33 @@
         },
 
         /**
-         * Filtra this.datos por el texto del input de búsqueda.
-         * Busca en todos los campos del objeto movimiento.
+         * Filtra this.datos por el mes seleccionado y el texto de búsqueda.
+         * El mes vacío muestra todos los meses; la búsqueda recorre todos los campos.
          */
         aplicarFiltro() {
-            const q = this.el.search.value.trim().toLowerCase();
-            this.filtrado = q
-                ? this.datos.filter((r) =>
-                    Object.values(r).some((v) => String(v).toLowerCase().includes(q)))
+            const mes = this.el.mes.value;
+            const q   = this.el.search.value.trim().toLowerCase();
+
+            const porMes = mes
+                ? this.datos.filter((r) => String(r.fecha || "").startsWith(mes))
                 : this.datos;
+
+            this.filtrado = q
+                ? porMes.filter((r) =>
+                    Object.values(r).some((v) => String(v).toLowerCase().includes(q)))
+                : porMes;
+
+            this.actualizarTitulo();
             this.renderPagina();
+        },
+
+        /** Actualiza el título con el mes filtrado: "Histórico de Movimientos · Octubre 2026". */
+        actualizarTitulo() {
+            const mes = this.el.mes.value;
+            const nombre = nombreMes(mes);
+            this.el.titulo.textContent = nombre
+                ? `Histórico de Movimientos · ${nombre}`
+                : "Histórico de Movimientos · Todos los meses";
         },
 
         /** Renderiza la página actual de this.filtrado en el tbody y actualiza info + paginación. */
