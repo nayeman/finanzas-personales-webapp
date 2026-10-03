@@ -1,0 +1,96 @@
+<!-- Parcial: vista Registrar — solo estructura, sin lógica. -->
+<!-- La lógica vive en archivos js-*.html > objeto Registrar -->
+<section class="tab-pane fade" id="registrar-panel"
+  role="tabpanel" aria-labelledby="registrar-tab" tabindex="0">
+  <div class="app-frame px-3 py-3">
+    <div class="form-surface">
+
+      <div class="mb-3">
+        <h2 class="h5 mb-0" id="registrar-titulo">Nuevo movimiento</h2>
+      </div>
+
+      <form id="registrar-form" novalidate>
+
+        <!-- ── Campos obligatorios ── -->
+        <div class="row g-3">
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="reg-tipo">Tipo <span class="text-danger">*</span></label>
+            <select class="form-select" id="reg-tipo" name="tipo" required>
+              <option value="Gasto" selected>Gasto</option>
+              <option value="Ingreso">Ingreso</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="reg-valor">Valor (COP) <span class="text-danger">*</span></label>
+            <input class="form-control" id="reg-valor" name="valor"
+              type="number" min="0" step="1" inputmode="numeric" placeholder="0" required>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="reg-categoria">Categoría <span class="text-danger">*</span></label>
+            <select class="form-select" id="reg-categoria" name="categoria_id" required>
+              <option value="">Cargando…</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="reg-fecha">Fecha <span class="text-danger">*</span></label>
+            <input class="form-control" id="reg-fecha" name="fecha" type="date" required>
+          </div>
+
+        </div>
+        <!-- /campos obligatorios -->
+
+        <!-- ── Opciones avanzadas (colapsables) ── -->
+        <div class="mt-4">
+          <button class="btn btn-link link-primary px-0 advanced-toggle" type="button"
+            data-bs-toggle="collapse" data-bs-target="#reg-advanced"
+            aria-expanded="false" aria-controls="reg-advanced">
+            Opciones avanzadas
+          </button>
+          <div class="collapse" id="reg-advanced">
+            <div class="border-top pt-3 mt-2">
+              <div class="row g-3">
+
+                <div class="col-12">
+                  <label class="form-label" for="reg-descripcion">Descripción</label>
+                  <input class="form-control" id="reg-descripcion" name="descripcion"
+                    type="text" placeholder="Ej. Almuerzo, Salario octubre…">
+                </div>
+
+                <div class="col-12 col-sm-6">
+                  <label class="form-label" for="reg-metodo">Método de pago</label>
+                  <select class="form-select" id="reg-metodo" name="metodo_pago">
+                    <option value="">Sin especificar</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Tarjeta">Tarjeta</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Nequi">Nequi</option>
+                    <option value="Daviplata">Daviplata</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- /opciones avanzadas -->
+
+        <!-- Campo oculto para edición (id del movimiento) -->
+        <input type="hidden" id="reg-id" name="id" value="">
+
+        <!-- ── Guardar + estado ── -->
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mt-4 pt-3 border-top">
+          <button class="btn btn-primary btn-save" type="submit" id="registrar-submit">Guardar</button>
+          <button class="btn btn-outline-secondary btn-save" type="button" id="registrar-cancelar"
+            style="display:none">Cancelar</button>
+          <div class="small" id="registrar-status" role="status" aria-live="polite"></div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</section>

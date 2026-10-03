@@ -1,0 +1,73 @@
+<script>
+// Utilidades compartidas
+    
+
+    /**
+     * Muestra un mensaje de estado en un elemento + notificación flotante (toast).
+     * Reutilizado del formulario de diálisis original sin modificaciones.
+     * @param {HTMLElement} el Elemento de texto inline donde aparece el mensaje.
+     * @param {string} message Texto a mostrar.
+     * @param {string} type Sufijo de color Bootstrap: success | danger | warning | secondary.
+     */
+    function showStatus(el, message, type) {
+        el.className  = `small text-${type}`;
+        el.textContent = message;
+
+        if (type === "success" || type === "danger" || type === "warning") {
+            const COLORS = {
+                success: { bg: "#1a8a70", icon: "✓" },
+                danger:  { bg: "#c0392b", icon: "✕" },
+                warning: { bg: "#e67e22", icon: "⚠" },
+            };
+            const { bg, icon } = COLORS[type];
+            const toast = document.createElement("div");
+            toast.textContent = `${icon}  ${message}`;
+            Object.assign(toast.style, {
+                position: "fixed", bottom: "1.25rem", right: "1rem",
+                background: bg, color: "#fff",
+                padding: "0.75rem 1.1rem", borderRadius: "0.65rem",
+                fontFamily: "Outfit, system-ui, sans-serif",
+                fontSize: "0.92rem", fontWeight: "500",
+                boxShadow: "0 4px 16px rgba(0,0,0,.18)",
+                zIndex: "9999", maxWidth: "calc(100vw - 2rem)",
+                opacity: "1", transition: "opacity 0.4s ease",
+            });
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = "0"; }, 3000);
+            setTimeout(() => { toast.remove(); }, 3400);
+        }
+    }
+
+    /** Formatea un número como pesos colombianos: $1.234.567 */
+    function formatCOP(value) {
+        return "$" + (Number(value) || 0).toLocaleString("es-CO");
+    }
+
+    /**
+     * Devuelve la fecha de hoy en formato yyyy-MM-dd.
+     * L3: usa toISOString().slice() en vez de construcción manual.
+     * @returns {string}
+     */
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+
+    /**
+     * Escapa caracteres HTML en un string para prevenir XSS al inyectar en innerHTML.
+     * B2: usado en crearFila() para todos los campos que vienen de Sheets.
+     * @param {*} s Valor a escapar.
+     * @returns {string}
+     */
+    function esc(s) {
+        return String(s || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    /**
+     * Capitaliza la primera letra de un string.
+     * @param {string} s String a capitalizar.
+     * @returns {string}
+     */
+    const capitalize = (s) => typeof s === 'string' && s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+</script>

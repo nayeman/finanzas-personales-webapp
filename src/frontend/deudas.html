@@ -1,0 +1,53 @@
+<!-- Parcial: vista Deudas — Formulario para crear una nueva deuda. -->
+<section class="tab-pane fade" id="deudas-panel"
+  role="tabpanel" aria-labelledby="deudas-tab" tabindex="0">
+  <div class="app-frame px-3 py-3">
+    <div class="form-surface">
+
+      <div class="mb-3">
+        <h2 class="h5 mb-0" id="deudas-titulo">Nueva Deuda</h2>
+      </div>
+
+      <form id="deudas-form" novalidate>
+        <input type="hidden" id="deuda-id" name="id">
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="deuda-persona">Persona / Entidad <span class="text-danger">*</span></label>
+            <input class="form-control" id="deuda-persona" name="persona" type="text" placeholder="Ej. Juan, Banco, Tarjeta..." required>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="deuda-total">Monto Total (COP) <span class="text-danger">*</span></label>
+            <input class="form-control" id="deuda-total" name="total_deuda"
+              type="number" min="1" step="1" inputmode="numeric" placeholder="0" required>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="deuda-categoria">Categoría</label>
+            <select class="form-select" id="deuda-categoria" name="categoria_id">
+              <option value="">Cargando…</option>
+            </select>
+          </div>
+
+          <!-- Abonado: campo manual (default 0); Saldo y Estado siguen siendo fórmulas de la hoja -->
+          <div class="col-12 col-sm-6" id="deuda-abonado-group">
+            <label class="form-label" for="deuda-abonado">Abonado (COP)</label>
+            <input class="form-control" id="deuda-abonado" name="abonado" type="number"
+              min="0" step="1" inputmode="numeric" placeholder="0">
+          </div>
+        </div>
+
+        <!-- <div class="form-text mt-2" id="deuda-abonado-hint">
+          Saldo y Estado se calculan automáticamente con las fórmulas de la hoja (la app no los modifica).
+        </div> -->
+
+        <!-- ── Guardar + estado ── -->
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-3 mt-4 pt-3 border-top">
+          <button class="btn btn-primary btn-save" type="submit" id="deuda-submit">Guardar Deuda</button>
+          <div class="small" id="deuda-status" role="status" aria-live="polite"></div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</section>

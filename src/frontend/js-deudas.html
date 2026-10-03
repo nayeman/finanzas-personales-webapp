@@ -1,0 +1,92 @@
+<script>
+// Módulo Deudas
+    const Deudas = {
+        form:       document.getElementById("deudas-form"),
+        submit:     document.getElementById("deuda-submit"),
+        status:     document.getElementById("deuda-status"),
+        catSelect:  document.getElementById("deuda-categoria"),
+        titulo:     document.getElementById("deudas-titulo"),
+        saving:     false,
+
+        init() {
+            this.cargarCategorias();
+            this.form.addEventListener("submit", (e) => this.handleSubmit(e));
+        },
+
+        cargarCategorias() {
+            google.script.run
+                .withSuccessHandler((cats) => {
+                    this.catSelect.innerHTML = `<option value="CAT-008">Otros</option>` + cats
+                        .map((c) => `<option value="${esc(c.id)}">${esc(c.nombre)}</option>`)
+                        .join("");
+                })
+                .withFailureHandler(() => {
+                    this.catSelect.innerHTML = "<option value='CAT-008'>Error al cargar</option>";
+                })
+                .getCategorias();
+        },
+
+        resetForm() {
+            this.status.textContent = "";
+            this.form.reset();
+            document.getElementById("deuda-id").value = "";
+            // Abonado: campo manual (default 0); saldo y estado siguen siendo fórmulas de la hoja
+            document.getElementById("deuda-abonado").value = "";
+            this.titulo.textContent = "Nueva Deuda";
+            this.submit.textContent = "Guardar Deuda";
+        },
+
+        editarDeuda(d) {
+            this.resetForm();
+            document.getElementById("deuda-id").value = d.id;
+            document.getElementById("deuda-persona").value = d.persona;
+            document.getElementById("deuda-total").value = d.total_deuda;
+            this.catSelect.value = d.categoria_id;
+
+            document.getElementById("deuda-abonado").value = d.abonado || 0;
+
+            this.titulo.textContent = "Editar Deuda";
+            this.submit.textContent = "Actualizar Deuda";
+
+            // Cambiar a la pestaña Deudas
+            bootstrap.Tab.getOrCreateInstance(document.getElementById("deudas-tab")).show();
+        },
+
+        handleSubmit(e) {
+            e.preventDefault();
+            if (this.saving || !this.form.reportValidity()) return;
+
+            this.saving = true;
+            this.submit.disabled = true;
+            this.submit.textContent = "Guardando…";
+
+            const idValue = document.getElementById("deuda-id").value;
+            const data = {
+                persona:      document.getElementById("deuda-persona").value,
+                total_deuda:  document.getElementById("deuda-total").value,
+                categoria_id: document.getElementById("deuda-categoria").value,
+                abonado:      document.getElementById("deuda-abonado").value,
+            };
+            if (idValue) data.id = idValue;
+
+            google.script.run
+                .withSuccessHandler(() => {
+                    this.saving = false;
+                    this.submit.disabled = false;
+                    showStatus(this.status, "Deuda guardada correctamente.", "success");
+                    this.resetForm();
+                    // Opcional: Actualizar vista si están en Visualizar
+                    if (typeof Visualizar !== "undefined") {
+                        Visualizar.recargarDeudas();
+                    }
+                })
+                .withFailureHandler((err) => {
+                    this.saving = false;
+                    this.submit.disabled = false;
+                    this.submit.textContent = "Guardar Deuda";
+                    showStatus(this.status, err?.message || String(err) || "Error al crear.", "danger");
+                })
+                .saveDeuda(data);
+        },
+    };
+</script>

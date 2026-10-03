@@ -1,0 +1,9 @@
+node_modules/
+.clasp.json
+.clasprc.json
+.env
+appsscript.json
+.specify/
+.opencode/
+opencode.json
+.github

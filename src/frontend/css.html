@@ -1,0 +1,214 @@
+<!-- Parcial incluido en el head de app.html: contiene estilos propios. -->
+<style>
+  :root {
+    --bs-primary: #1a8a70;
+    --bs-primary-rgb: 26, 138, 112;
+    --bs-link-color: #1a8a70;
+    --bs-link-hover-color: #146b57;
+    --color-bg: #f2f5f4;
+    --color-surface: #ffffff;
+    --color-border: #dde4e1;
+    --color-text: #1e2d29;
+    --color-muted: #607067;
+    --radius-card: 1rem;
+  }
+
+  /* Fuerza el color verde en los botones outline y check de Bootstrap */
+  .btn-outline-primary {
+    color: #1a8a70;
+    border-color: #1a8a70;
+  }
+  .btn-outline-primary:hover,
+  .btn-check:checked + .btn-outline-primary {
+    background-color: #1a8a70;
+    border-color: #1a8a70;
+    color: #fff;
+  }
+  .btn-check:focus + .btn-outline-primary,
+  .btn-outline-primary:focus {
+    box-shadow: 0 0 0 3px rgba(26,138,112,.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    font-family: "Outfit", system-ui, sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-frame {
+    width: min(100%, 46rem);
+    margin-inline: auto;
+    padding: 0 0.75rem 2rem;
+  }
+
+  /* ── Header ── */
+  .app-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.85rem 1rem;
+  }
+
+  .app-eyebrow {
+    color: var(--color-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .app-header h1 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Mode switch ── */
+  .mode-switch {
+    padding: 0.2rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.6rem;
+    background: var(--color-surface);
+    gap: 0.15rem;
+  }
+
+  .mode-switch .nav-link {
+    color: var(--color-muted);
+    font-weight: 500;
+    font-size: 0.92rem;
+    border-radius: 0.45rem;
+    padding: 0.45rem 1rem;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .mode-switch .nav-link.active {
+    background: var(--bs-primary);
+    color: #fff;
+  }
+
+  /* ── Form card ── */
+  .form-surface {
+    padding: 1.25rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+
+  .form-surface h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Labels ── */
+  .form-label, legend.form-label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--color-text);
+    margin-bottom: 0.3rem;
+  }
+
+  /* ── Inputs ── */
+  .form-control, .form-select {
+    font-family: inherit;
+    font-size: 1rem;
+    border-color: var(--color-border);
+    border-radius: 0.55rem;
+    padding: 0.55rem 0.75rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 3px rgba(26,138,112,.18);
+  }
+
+  .form-text {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+  }
+
+  /* ── P.A. split ── */
+  .bp-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .bp-wrapper input {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .bp-sep {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--color-muted);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* ── Buttons ── */
+  .btn-save {
+    width: 100%;
+    min-height: 2.85rem;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.6rem;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-primary {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+  }
+
+  .btn-primary:hover {
+    background: var(--bs-link-hover-color);
+    border-color: var(--bs-link-hover-color);
+  }
+
+  /* ── Advanced toggle ── */
+  .advanced-toggle {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    color: var(--bs-primary);
+  }
+
+  .advanced-toggle:hover { opacity: 0.8; }
+
+  /* ── Footer ── */
+  footer {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    text-align: center;
+    padding: 1rem 0 0.5rem;
+  }
+
+  @media (min-width: 576px) {
+    .form-surface { padding: 1.5rem; }
+    .btn-save { width: auto; min-width: 9rem; }
+  }
+
+  /* ── Adiciones mínimas para el nuevo proyecto (no cambian nada existente) ── */
+
+  /* fw-600 no existe en Bootstrap 5 por defecto */
+  .fw-600 { font-weight: 600; }
+
+  /* Los 3 paneles (dashboard, registrar, visualizar) comparten el mismo tab-content */
+  .tab-content { /* hereda de Bootstrap — sin overrides necesarios */ }
+
+  /* Tabla DataTable: sin estilos propios, usa table-sm table-hover de Bootstrap */
+  #dt-table thead th { font-size: 0.82rem; font-weight: 600; }
+</style>

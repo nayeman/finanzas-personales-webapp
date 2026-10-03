@@ -1,0 +1,302 @@
+<script>
+// Módulo Visualizar (DataTable en cliente)
+    // Responsabilidad: listar movimientos con filtro, paginación y CRUD por fila.
+    // El filtrado y la paginación son 100% en cliente sobre el array cargado del backend.
+    
+    const Visualizar = {
+        datos:    [],    // array completo cargado del backend
+        filtrado: [],    // array tras aplicar búsqueda
+        datosDeudas: [], // array de deudas cargado del backend
+        pagina:   1,     // página actual (1-indexed)
+        pageSize: 10,    // filas por página
+        deleteItem: null,  // objeto { type: "movimiento" | "deuda", id: string } pendiente de eliminación
+
+        el: {
+            body:          document.getElementById("dt-body"),
+            search:        document.getElementById("dt-search"),
+            pageSize:      document.getElementById("dt-page-size"),
+            info:          document.getElementById("dt-info"),
+            pagination:    document.getElementById("dt-pagination"),
+            selectAll:     document.getElementById("dt-select-all"),
+            btnAgregar:    document.getElementById("btn-agregar"),
+            deleteModal:   document.getElementById("delete-confirmation"),
+            deleteError:   document.getElementById("delete-error"),
+            confirmDelete: document.getElementById("confirm-delete"),
+            deudasBody:    document.getElementById("deudas-body"),
+        },
+
+        init() {
+            this.modal = bootstrap.Modal.getOrCreateInstance(this.el.deleteModal);
+
+            // Botón Agregar → resetear formulario y navegar a Registrar
+            this.el.btnAgregar.addEventListener("click", () => {
+                Registrar.resetForm();
+                bootstrap.Tab.getOrCreateInstance(document.getElementById("registrar-tab")).show();
+            });
+
+            // Búsqueda en tiempo real — reinicia a página 1
+            this.el.search.addEventListener("input", () => {
+                this.pagina = 1;
+                this.aplicarFiltro();
+            });
+
+            // Cambio de tamaño de página — reinicia a página 1
+            this.el.pageSize.addEventListener("change", () => {
+                this.pageSize = Number(this.el.pageSize.value);
+                this.pagina   = 1;
+                this.renderPagina();
+            });
+
+            // Checkbox "seleccionar todos" → marcar/desmarcar todas las filas visibles
+            this.el.selectAll.addEventListener("change", (e) => {
+                this.el.body.querySelectorAll(".dt-row-check").forEach((cb) => {
+                    cb.checked = e.target.checked;
+                });
+            });
+
+            this.el.confirmDelete.addEventListener("click", () => this.confirmarEliminar());
+
+            // Cargar datos la primera vez que se activa la pestaña
+            document.getElementById("visualizar-tab").addEventListener("shown.bs.tab", () => {
+                if (this.datos.length === 0) this.recargar();
+                if (this.datosDeudas.length === 0) this.recargarDeudas();
+            });
+        },
+
+        /** Descarga todos los movimientos del backend y actualiza la tabla. */
+        recargar() {
+            this.el.body.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3 small">Cargando…</td></tr>`;
+            google.script.run
+                .withSuccessHandler((rows) => {
+                    this.datos  = rows || [];
+                    this.pagina = 1;
+                    this.aplicarFiltro();
+                })
+                .withFailureHandler((err) => {
+                    this.el.body.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3 small">
+                        Error al cargar: ${esc(err?.message || String(err))}</td></tr>`;
+                })
+                .getMovimientos();
+        },
+
+        /** Descarga todas las deudas del backend y actualiza la tabla de deudas. */
+        recargarDeudas() {
+            this.el.deudasBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3 small">Cargando…</td></tr>`;
+            google.script.run
+                .withSuccessHandler((deudas) => {
+                    this.datosDeudas = deudas || [];
+                    this.renderDeudas();
+                })
+                .withFailureHandler((err) => {
+                    this.el.deudasBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-3 small">
+                        Error al cargar deudas: ${esc(err?.message || String(err))}</td></tr>`;
+                })
+                .getDeudas();
+        },
+
+        /** Renderiza la tabla de deudas. */
+        renderDeudas() {
+            this.el.deudasBody.innerHTML = "";
+            if (this.datosDeudas.length === 0) {
+                this.el.deudasBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3 small">No hay deudas registradas.</td></tr>`;
+                return;
+            }
+            this.datosDeudas.forEach(d => {
+                const tr = document.createElement("tr");
+                const progress = d.total_deuda > 0 ? (d.abonado / d.total_deuda) * 100 : 0;
+                tr.innerHTML = `
+                  <td class="fw-bold small" style="color: var(--color-primary);">${esc(d.persona)}</td>
+                  <td class="small text-end fw-600">${formatCOP(d.total_deuda)}</td>
+                  <td class="small text-end text-success">${formatCOP(d.abonado)}</td>
+                  <td class="text-center" style="width: 100px;">
+                    <span class="badge ${d.estado === 'Pagado' ? 'bg-success' : 'bg-warning text-dark'} w-100">${esc(d.estado)}</span>
+                    <div class="progress mt-1" style="height: 4px;">
+                      <div class="progress-bar ${d.estado === 'Pagado' ? 'bg-success' : 'bg-primary'}" role="progressbar" style="width: ${progress}%" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                  </td>
+                  <td class="text-center text-nowrap">
+                    <button class="btn btn-outline-primary btn-sm px-2 py-1" data-action="editar-deuda"
+                      aria-label="Ver o editar deuda">
+                      <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm px-2 py-1 ms-1" data-action="eliminar-deuda"
+                      aria-label="Eliminar deuda">
+                      <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                    </button>
+                  </td>
+                `;
+
+                tr.querySelector("[data-action='editar-deuda']").addEventListener("click", () => {
+                    Deudas.editarDeuda(d);
+                });
+                tr.querySelector("[data-action='eliminar-deuda']").addEventListener("click", () => {
+                    this.pedirConfirmacion("deuda", d.id);
+                });
+
+                this.el.deudasBody.appendChild(tr);
+            });
+        },
+
+        /**
+         * Filtra this.datos por el texto del input de búsqueda.
+         * Busca en todos los campos del objeto movimiento.
+         */
+        aplicarFiltro() {
+            const q = this.el.search.value.trim().toLowerCase();
+            this.filtrado = q
+                ? this.datos.filter((r) =>
+                    Object.values(r).some((v) => String(v).toLowerCase().includes(q)))
+                : this.datos;
+            this.renderPagina();
+        },
+
+        /** Renderiza la página actual de this.filtrado en el tbody y actualiza info + paginación. */
+        renderPagina() {
+            const total      = this.filtrado.length;
+            const start      = (this.pagina - 1) * this.pageSize;
+            const end        = Math.min(start + this.pageSize, total);
+            // N3: renombrada de 'pagina' para no sombrear this.pagina
+            const filasPagina = this.filtrado.slice(start, end);
+
+            this.el.body.innerHTML = "";
+            if (filasPagina.length === 0) {
+                this.el.body.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3 small">Sin registros.</td></tr>`;
+            } else {
+                filasPagina.forEach((r) => this.el.body.appendChild(this.crearFila(r)));
+            }
+
+            this.el.info.textContent = total === 0
+                ? "Showing 0 to 0 of 0 entries"
+                : `Showing ${start + 1} to ${end} of ${total} entries`;
+
+            this.renderPaginacion(total);
+            this.el.selectAll.checked = false;
+        },
+
+        /**
+         * Crea y devuelve un <tr> con los datos de un movimiento.
+         * B2: todos los campos dinámicos pasan por esc() para prevenir XSS.
+         * @param {Object} r Objeto movimiento.
+         * @returns {HTMLTableRowElement}
+         */
+        crearFila(r) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="d-none d-md-table-cell"><input type="checkbox" class="dt-row-check" value="${esc(r.id)}" aria-label="Seleccionar fila"></td>
+              <td class="small text-nowrap">${esc(r.fecha) || "—"}</td>
+              <td class="small d-none d-md-table-cell">
+                <span class="badge ${String(r.tipo).toLowerCase() === 'ingreso' ? 'bg-success' : 'bg-danger'}">${capitalize(esc(r.tipo)) || "—"}</span>
+              </td>
+              <td>
+                <div class="fw-bold small" style="color: var(--color-primary);">${capitalize(esc(r.categoria)) || "—"}</div>
+                <div class="small text-muted text-truncate" style="max-width: 150px;">${capitalize(esc(r.descripcion)) || "—"}</div>
+              </td>
+              <td class="small text-end fw-600 ${String(r.tipo).toLowerCase() === 'ingreso' ? 'text-success' : 'text-danger'}">
+                ${String(r.tipo).toLowerCase() === 'gasto' ? '-' : ''}${formatCOP(r.valor)}
+              </td>
+              <td class="text-center text-nowrap">
+                <button class="btn btn-outline-primary btn-sm px-2 py-1" data-action="editar"
+                  aria-label="Ver o editar movimiento" title="Ver registro completo">
+                  <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+                </button>
+                <button class="btn btn-outline-danger btn-sm px-2 py-1 ms-1" data-action="eliminar"
+                  aria-label="Eliminar movimiento">
+                  <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                </button>
+              </td>`;
+
+            tr.querySelector("[data-action='editar']").addEventListener("click", () => {
+                Registrar.editarMovimiento(r);
+            });
+            tr.querySelector("[data-action='eliminar']").addEventListener("click", () => {
+                this.pedirConfirmacion("movimiento", r.id);
+            });
+
+            return tr;
+        },
+
+        /**
+         * Renderiza los controles de paginación (<, 1, 2, ..., >).
+         * @param {number} total Total de filas en this.filtrado.
+         */
+        renderPaginacion(total) {
+            const pages = Math.ceil(total / this.pageSize) || 1;
+            this.el.pagination.innerHTML = "";
+
+            /** Crea un <li class="page-item"> para la paginación. */
+            const crearBtn = (label, page, disabled, active) => {
+                const li = document.createElement("li");
+                li.className = `page-item${disabled ? " disabled" : ""}${active ? " active" : ""}`;
+                li.innerHTML = `<a class="page-link" href="#" aria-label="Página ${label}">${label}</a>`;
+                if (!disabled && !active) {
+                    li.addEventListener("click", (e) => { e.preventDefault(); this.irAPagina(page); });
+                }
+                return li;
+            };
+
+            this.el.pagination.appendChild(crearBtn("‹", this.pagina - 1, this.pagina === 1));
+            for (let i = 1; i <= pages; i++) {
+                this.el.pagination.appendChild(crearBtn(i, i, false, i === this.pagina));
+            }
+            this.el.pagination.appendChild(crearBtn("›", this.pagina + 1, this.pagina === pages));
+        },
+
+        /**
+         * Navega a una página específica.
+         * @param {number} p Número de página (1-indexed).
+         */
+        irAPagina(p) {
+            this.pagina = p;
+            this.renderPagina();
+        },
+
+        /**
+         * Abre el modal de confirmación para eliminar.
+         * @param {string} type "movimiento" o "deuda"
+         * @param {string} id ID del registro a eliminar.
+         */
+        pedirConfirmacion(type, id) {
+            this.deleteItem = { type, id };
+            this.el.deleteError.classList.add("d-none");
+            this.el.deleteError.textContent = "";
+            this.modal.show();
+        },
+
+        /** Llama al backend para eliminar el registro pendiente y recarga la tabla. */
+        confirmarEliminar() {
+            if (!this.deleteItem) return;
+            this.el.confirmDelete.disabled    = true;
+            this.el.confirmDelete.textContent = "Eliminando…";
+
+            const req = this.deleteItem.type === "movimiento" 
+                ? google.script.run.withSuccessHandler(() => {
+                    this.onDeleteSuccess("Movimiento eliminado.");
+                  }).withFailureHandler((err) => this.onDeleteError(err)).deleteMovimiento(this.deleteItem.id)
+                : google.script.run.withSuccessHandler(() => {
+                    this.onDeleteSuccess("Deuda eliminada.");
+                  }).withFailureHandler((err) => this.onDeleteError(err)).deleteDeuda(this.deleteItem.id);
+        },
+
+        onDeleteSuccess(msg) {
+            this.modal.hide();
+            this.el.confirmDelete.disabled    = false;
+            this.el.confirmDelete.textContent = "Eliminar";
+            
+            showStatus({ className: "", textContent: "" }, msg, "success");
+            
+            if (this.deleteItem.type === "movimiento") {
+                this.recargar();
+            } else {
+                this.recargarDeudas();
+            }
+            this.deleteItem = null;
+        },
+
+        onDeleteError(err) {
+            this.el.confirmDelete.disabled    = false;
+            this.el.confirmDelete.textContent = "Eliminar";
+            this.el.deleteError.textContent   = err?.message || String(err) || "No se pudo eliminar.";
+            this.el.deleteError.classList.remove("d-none");
+        }
+    };
+</script>

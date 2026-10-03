@@ -1,0 +1,44 @@
+<!-- Parcial de app.html: título de la app y navegación de 3 vistas. -->
+<header class="app-header">
+  <div class="app-frame px-3 py-3">
+    <p class="app-eyebrow mb-1">Finanzas personales</p>
+    <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+      <i class="bi bi-wallet2 text-primary" aria-hidden="true"></i>
+      <span>Mi Dinero</span>
+    </h1>
+  </div>
+</header>
+
+<!-- Navegación de vistas: Dashboard | Registrar | Visualizar -->
+<nav class="app-frame px-3 pt-3">
+  <ul class="nav nav-pills nav-fill mode-switch" id="main-nav" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="dashboard-tab"
+        data-bs-toggle="tab" data-bs-target="#dashboard-panel"
+        type="button" role="tab" aria-controls="dashboard-panel" aria-selected="true">
+        Dashboard
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="registrar-tab"
+        data-bs-toggle="tab" data-bs-target="#registrar-panel"
+        type="button" role="tab" aria-controls="registrar-panel" aria-selected="false">
+        Movimientos
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="deudas-tab"
+        data-bs-toggle="tab" data-bs-target="#deudas-panel"
+        type="button" role="tab" aria-controls="deudas-panel" aria-selected="false">
+        Deudas
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="visualizar-tab"
+        data-bs-toggle="tab" data-bs-target="#visualizar-panel"
+        type="button" role="tab" aria-controls="visualizar-panel" aria-selected="false">
+        Visualizar
+      </button>
+    </li>
+  </ul>
+</nav>

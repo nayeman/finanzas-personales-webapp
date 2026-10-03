@@ -1,0 +1,257 @@
+<script>
+// Módulo Dashboard
+    // Responsabilidad: cargar getDashboard() y renderizar los datos en la vista,
+    // más el mini-chat del Asesor IA (preguntarAsesor / analizarFinanzas).
+
+    const Dashboard = {
+        el: {
+            filtroMes:document.getElementById("dashboard-filtro-mes"),
+            estado:   document.getElementById("dashboard-estado"),
+            balance:  document.getElementById("dash-balance"),
+            ingresos: document.getElementById("dash-ingresos"),
+            gastos:   document.getElementById("dash-gastos"),
+            chatBox:  document.getElementById("ai-chat"),
+            chatForm: document.getElementById("ai-chat-form"),
+            chatInput:document.getElementById("ai-input"),
+            chatSend: document.getElementById("ai-send"),
+            chipResumen: document.getElementById("chip-resumen"),
+            chipDeudas:  document.getElementById("chip-deudas"),
+            clearBtn:    document.getElementById("ai-clear")
+        },
+        historial: [],   // [{rol:"usuario"|"asesor", texto}] — solo en sesión
+        enviando: false,
+
+        init() {
+            // Recargar cada vez que el usuario activa la pestaña Dashboard
+            document.getElementById("dashboard-tab").addEventListener("shown.bs.tab", () => {
+                this.cargar();
+            });
+
+            if (this.el.filtroMes) {
+                // Set default month to current
+                const hoy = new Date();
+                const m = hoy.getMonth() + 1;
+                const mesStr = (m < 10 ? "0" : "") + m;
+                this.el.filtroMes.value = `${hoy.getFullYear()}-${mesStr}`;
+
+                this.el.filtroMes.addEventListener("change", () => {
+                    this.cargar();
+                });
+            }
+
+            // ── Chat del Asesor IA ──
+            this.el.chatForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const texto = this.el.chatInput.value.trim();
+                if (!texto) return;
+                this.el.chatInput.value = "";
+                this.enviarPregunta(texto);
+            });
+            this.el.chipResumen.addEventListener("click", () => this.enviarResumen());
+            this.el.chipDeudas.addEventListener("click", () => this.enviarPregunta("¿Cuánto debo y a quién?"));
+            this.el.clearBtn.addEventListener("click", () => this.limpiarChat());
+            this.agregarBurbuja("asesor",
+                "¡Hola! Soy tu asesor financiero. Pregúntame sobre tus ingresos, gastos o deudas de este mes.");
+
+            // Carga inicial (pestaña activa al abrir la app)
+            this.cargar();
+        },
+
+        /** Llama al backend y actualiza la vista con los datos del mes. */
+        cargar() {
+            this.el.estado.textContent = "Cargando…";
+            const mesFiltro = this.el.filtroMes ? this.el.filtroMes.value : "";
+            google.script.run
+                .withSuccessHandler((data) => this.render(data))
+                .withFailureHandler((err) => {
+                    this.el.estado.textContent = "Error al cargar.";
+                    console.error("Dashboard.cargar", err);
+                })
+                .getDashboard(mesFiltro);
+        },
+
+        /**
+         * Renderiza los datos del mes en la vista.
+         * @param {{ balance:number, ingresos:number, gastos:number, historial:Array, mesActual:string }} data
+         */
+        render(data) {
+            this.el.estado.textContent   = "";
+            this.el.balance.textContent  = formatCOP(data.balance);
+            this.el.balance.className    = data.balance < 0 ? "h3 fw-bold mb-0 text-danger" : "h3 fw-bold mb-0";
+            this.el.ingresos.textContent = formatCOP(data.ingresos);
+            this.el.gastos.textContent   = (data.gastos > 0 ? "-" : "") + formatCOP(data.gastos);
+
+
+            if (data.historial) {
+                this.renderChart(data.historial);
+            }
+        },
+
+        /**
+         * Renderiza el gráfico de evolución usando Chart.js
+         * @param {Array<{dia:string, ingresos:number, gastos:number}>} historial
+         */
+        renderChart(historial) {
+            const container = document.getElementById('dash-chart-container');
+            const ctx = document.getElementById('dash-chart');
+            if (!ctx || !container) return;
+
+            if (this.chart) this.chart.destroy();
+
+            if (!historial || historial.length === 0) {
+                container.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-muted small border rounded p-3 text-center" style="background: var(--color-bg);">Aún no hay registros para graficar.</div>';
+                return;
+            }
+
+            const labels = historial.map(h => h.dia);
+            const ingresos = historial.map(h => h.ingresos);
+            const gastos = historial.map(h => h.gastos);
+
+            // eslint-disable-next-line no-undef
+            this.chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: ingresos,
+                            borderColor: '#1a8a70',
+                            backgroundColor: 'rgba(26, 138, 112, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Gastos',
+                            data: gastos,
+                            borderColor: '#c0392b',
+                            backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: (val) => formatCOP(val) } }
+                    }
+                }
+            });
+        },
+
+        // ── Mini-chat del Asesor IA ──
+
+        /**
+         * Añade una burbuja al historial visible y hace scroll al final.
+         * @param {"usuario"|"asesor"} rol Emisor de la burbuja.
+         * @param {string} texto Contenido (se inserta como texto → seguro frente a XSS).
+         * @returns {HTMLElement} La burbuja creada (para actualizarla después).
+         */
+        agregarBurbuja(rol, texto) {
+            const esUsuario = rol === "usuario";
+            const div = document.createElement("div");
+            div.className = esUsuario
+                ? "align-self-end small text-white px-3 py-2 rounded-4"
+                : "align-self-start small px-3 py-2 rounded-4";
+            if (esUsuario) {
+                div.style.cssText = "background: var(--color-primary); max-width: 85%; white-space: pre-wrap;";
+            } else {
+                div.style.cssText = "background: white; border: 1px solid var(--color-border); max-width: 90%; white-space: pre-wrap;";
+            }
+            div.textContent = texto;
+            this.el.chatBox.appendChild(div);
+            this.el.chatBox.scrollTop = this.el.chatBox.scrollHeight;
+            return div;
+        },
+
+        /**
+         * Envía una pregunta al asesor (backend preguntarAsesor) con el historial de la sesión.
+         * @param {string} texto Pregunta del usuario.
+         */
+        enviarPregunta(texto) {
+            if (this.enviando || !texto) return;
+            this.enviando = true;
+
+            // Historial previo (sin la pregunta actual — la manda el backend como "Pregunta actual")
+            const historialEnvio = this.historial.slice();
+            this.historial.push({ rol: "usuario", texto });
+            this.agregarBurbuja("usuario", texto);
+
+            const burbuja = this.agregarBurbuja("asesor", "Pensando…");
+            this.ponerEnviando(true);
+
+            google.script.run
+                .withSuccessHandler((respuesta) => {
+                    burbuja.textContent = respuesta;
+                    this.historial.push({ rol: "asesor", texto: respuesta });
+                    this.terminarEnvio();
+                })
+                .withFailureHandler((err) => {
+                    burbuja.textContent = "Error: " + (err?.message || String(err));
+                    burbuja.classList.add("text-danger");
+                    this.terminarEnvio();
+                })
+                .preguntarAsesor(historialEnvio, texto);
+        },
+
+        /**
+         * Chip "Resumen de mi mes": análisis rápido con analizarFinanzas (prompt de resumen clásico).
+         */
+        enviarResumen() {
+            if (this.enviando) return;
+            this.enviando = true;
+
+            const texto = "Resumen de mi mes";
+            this.historial.push({ rol: "usuario", texto });
+            this.agregarBurbuja("usuario", texto);
+
+            const burbuja = this.agregarBurbuja("asesor", "Analizando tu mes…");
+            this.ponerEnviando(true);
+
+            google.script.run
+                .withSuccessHandler((respuesta) => {
+                    burbuja.textContent = respuesta;
+                    this.historial.push({ rol: "asesor", texto: respuesta });
+                    this.terminarEnvio();
+                })
+                .withFailureHandler((err) => {
+                    burbuja.textContent = "Error: " + (err?.message || String(err));
+                    burbuja.classList.add("text-danger");
+                    this.terminarEnvio();
+                })
+                .analizarFinanzas("");
+        },
+
+        /**
+         * Reinicia la conversación: borra historial y burbujas y muestra el saludo.
+         * El historial limpio hace que la siguiente pregunta no arrastre contexto previo.
+         */
+        limpiarChat() {
+            if (this.enviando) return;
+            this.historial = [];
+            this.el.chatBox.innerHTML = "";
+            this.agregarBurbuja("asesor",
+                "¡Hola! Soy tu asesor financiero. Pregúntame sobre tus ingresos, gastos o deudas de este mes.");
+            this.el.chatInput.focus();
+        },
+
+        /** Bloquea la entrada mientras hay una llamada en curso. */
+        ponerEnviando(bloqueado) {
+            this.el.chatInput.disabled = bloqueado;
+            this.el.chatSend.disabled = bloqueado;
+            this.el.chipResumen.disabled = bloqueado;
+            this.el.chipDeudas.disabled = bloqueado;
+            this.el.clearBtn.disabled = bloqueado;
+        },
+
+        /** Rehabilita la entrada tras una respuesta o error. */
+        terminarEnvio() {
+            this.enviando = false;
+            this.ponerEnviando(false);
+            this.el.chatInput.focus();
+        },
+    };
+</script>

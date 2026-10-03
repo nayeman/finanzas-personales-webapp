@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "target": "ES2020",
+    "module": "none",
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["google-apps-script"]
+  },
+  "include": ["src/**/*.js"]
+}

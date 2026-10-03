@@ -1,0 +1,111 @@
+<!-- Parcial: vista Visualizar — Tablas de Movimientos y Deudas. -->
+<section class="tab-pane fade" id="visualizar-panel" role="tabpanel" aria-labelledby="visualizar-tab" tabindex="0">
+  <div class="app-frame px-3 py-3">
+    <div class="form-surface">
+
+      <!-- Cabecera: Toggle Movimientos / Deudas -->
+      <div class="d-flex justify-content-center mb-4">
+        <ul class="nav nav-pills mode-switch" id="visualizar-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="view-movimientos-tab" data-bs-toggle="tab" data-bs-target="#view-movimientos" type="button" role="tab">Movimientos</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="view-deudas-tab" data-bs-toggle="tab" data-bs-target="#view-deudas" type="button" role="tab">Deudas</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="tab-content" id="visualizar-tabContent">
+        
+        <!-- ── TAB: MOVIMIENTOS ── -->
+        <div class="tab-pane fade show active" id="view-movimientos" role="tabpanel" aria-labelledby="view-movimientos-tab">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Historial</h2>
+            <button class="btn btn-primary btn-sm" id="btn-agregar" type="button">
+              <i class="bi bi-plus-lg" aria-hidden="true"></i> Gasto/Ingreso
+            </button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2 gap-2 flex-wrap">
+            <div class="d-flex align-items-center gap-2">
+              <span class="small text-muted">Show</span>
+              <select class="form-select form-select-sm" id="dt-page-size" style="width:auto">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+              <span class="small text-muted">entries</span>
+            </div>
+            <input class="form-control form-control-sm" id="dt-search" placeholder="Search…" style="max-width:180px" aria-label="Buscar movimiento">
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-2" id="dt-table">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" class="d-none d-md-table-cell" style="width: 40px;"><input type="checkbox" id="dt-select-all"></th>
+                  <th scope="col">Fecha</th>
+                  <th scope="col" class="d-none d-md-table-cell">Tipo</th>
+                  <th scope="col">Detalle</th>
+                  <th scope="col" class="text-end">Valor</th>
+                  <th scope="col" class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="dt-body"></tbody>
+            </table>
+          </div>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="small text-muted" id="dt-info">Showing 0 to 0 of 0 entries</span>
+            <nav aria-label="Paginación de movimientos"><ul class="pagination pagination-sm mb-0" id="dt-pagination"></ul></nav>
+          </div>
+        </div>
+
+        <!-- ── TAB: DEUDAS ── -->
+        <div class="tab-pane fade" id="view-deudas" role="tabpanel" aria-labelledby="view-deudas-tab">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Deudas Activas</h2>
+            <button class="btn btn-primary btn-sm" id="btn-agregar-deuda" type="button" onclick="document.getElementById('deudas-tab').click()">
+              <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva Deuda
+            </button>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-2" id="deudas-table">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Persona/Entidad</th>
+                  <th scope="col" class="text-end">Total</th>
+                  <th scope="col" class="text-end">Abonado</th>
+                  <th scope="col" class="text-center">Estado</th>
+                  <th scope="col" class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="deudas-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para eliminar -->
+  <div class="modal fade" id="delete-confirmation" tabindex="-1" aria-labelledby="delete-confirmation-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="delete-confirmation-title">Eliminar registro</h2>
+          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">¿Seguro que quieres eliminar este registro? Esta acción no se puede deshacer.</p>
+          <div class="alert alert-danger d-none mt-3 mb-0" id="delete-error" role="alert"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-danger" type="button" id="confirm-delete">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

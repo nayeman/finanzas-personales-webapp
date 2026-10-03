@@ -1,0 +1,130 @@
+<script>
+// Módulo Registrar
+    // Responsabilidad: formulario de alta y edición de movimientos.
+    
+    const Registrar = {
+        form:       document.getElementById("registrar-form"),
+        titulo:     document.getElementById("registrar-titulo"),
+        submit:     document.getElementById("registrar-submit"),
+        cancelar:   document.getElementById("registrar-cancelar"),
+        status:     document.getElementById("registrar-status"),
+        idField:    document.getElementById("reg-id"),
+        catSelect:  document.getElementById("reg-categoria"),
+        fechaInput: document.getElementById("reg-fecha"),
+        editMode:   false,
+        saving:     false,
+
+        init() {
+            this.fechaInput.value = todayISO();
+            this.cargarCategorias();
+            this.form.addEventListener("submit", (e) => this.handleSubmit(e));
+            this.cancelar.addEventListener("click", () => this.resetForm());
+            // Actualizar fecha al volver a la pestaña (solo en modo alta)
+            document.getElementById("registrar-tab").addEventListener("shown.bs.tab", () => {
+                if (!this.editMode) this.fechaInput.value = todayISO();
+            });
+        },
+
+        /**
+         * Carga las categorías desde el backend y puebla el <select>.
+         * L2: acepta un callback opcional para ejecutar tras cargar (usado en editarMovimiento).
+         * @param {Function} [onLoad] Función a ejecutar después de poblar el select.
+         */
+        cargarCategorias(onLoad) {
+            google.script.run
+                .withSuccessHandler((cats) => {
+                    this.catSelect.innerHTML = cats
+                        .map((c) => `<option value="${esc(c.id)}">${esc(c.nombre)}</option>`)
+                        .join("");
+                    if (onLoad) onLoad();
+                })
+                .withFailureHandler(() => {
+                    this.catSelect.innerHTML = "<option value=''>Error al cargar</option>";
+                })
+                .getCategorias();
+        },
+
+        /**
+         * Precarga el formulario con los datos de un movimiento existente para editarlo.
+         * Navega automáticamente a la pestaña Registrar.
+         * @param {{ id:string, tipo:string, valor:number, categoria_id:string, fecha:string, descripcion:string, metodo_pago:string }} mov
+         */
+        editarMovimiento(mov) {
+            this.editMode = true;
+            this.titulo.textContent      = "Editar movimiento";
+            this.submit.textContent      = "Actualizar";
+            this.cancelar.style.display  = "";
+            this.idField.value           = mov.id;
+
+            document.getElementById("reg-tipo").value        = mov.tipo;
+            document.getElementById("reg-valor").value       = mov.valor;
+            document.getElementById("reg-fecha").value       = mov.fecha;
+            document.getElementById("reg-descripcion").value = mov.descripcion || "";
+            document.getElementById("reg-metodo").value      = mov.metodo_pago || "";
+
+            // L2: un solo camino para cargar categorías y luego seleccionar la correcta
+            this.cargarCategorias(() => {
+                const opt = this.catSelect.querySelector(`option[value="${mov.categoria_id}"]`);
+                if (opt) opt.selected = true;
+            });
+
+            bootstrap.Tab.getOrCreateInstance(document.getElementById("registrar-tab")).show();
+        },
+
+        /** Resetea el formulario al estado inicial de alta (nuevo movimiento). */
+        resetForm() {
+            this.editMode               = false;
+            this.titulo.textContent     = "Nuevo movimiento";
+            this.submit.textContent     = "Guardar";
+            this.cancelar.style.display = "none";
+            this.idField.value          = "";
+            this.status.textContent     = "";
+            this.form.reset();
+            this.fechaInput.value       = todayISO();
+        },
+
+        /**
+         * Maneja el submit del formulario: valida, llama al backend y procesa la respuesta.
+         * Usa saveMovimiento (alta) o updateMovimiento (edición) según editMode.
+         * @param {Event} e
+         */
+        handleSubmit(e) {
+            e.preventDefault();
+            if (this.saving || !this.form.reportValidity()) return;
+
+            this.saving          = true;
+            this.submit.disabled = true;
+            this.submit.textContent = "Guardando…";
+
+            const data = {
+                id:           this.idField.value,
+                tipo:         document.getElementById("reg-tipo").value,
+                valor:        document.getElementById("reg-valor").value,
+                categoria_id: document.getElementById("reg-categoria").value,
+                fecha:        document.getElementById("reg-fecha").value,
+                descripcion:  document.getElementById("reg-descripcion").value,
+                metodo_pago:  document.getElementById("reg-metodo").value,
+            };
+
+            const etiqueta = this.editMode ? "Actualizar" : "Guardar";
+            const fn       = this.editMode ? "updateMovimiento" : "saveMovimiento";
+
+            google.script.run
+                .withSuccessHandler(() => {
+                    this.saving          = false;
+                    this.submit.disabled = false;
+                    this.submit.textContent = etiqueta;
+                    showStatus(this.status, "Guardado correctamente.", "success");
+                    this.resetForm();
+                    Visualizar.recargar();
+                })
+                .withFailureHandler((err) => {
+                    this.saving          = false;
+                    this.submit.disabled = false;
+                    this.submit.textContent = etiqueta;
+                    showStatus(this.status, err?.message || String(err) || "No se pudo guardar.", "danger");
+                })
+                [fn](data);
+        },
+    };
+</script>

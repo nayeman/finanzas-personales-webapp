@@ -1,0 +1,73 @@
+<!-- Parcial: vista Dashboard — solo estructura HTML, sin lógica. -->
+<!-- La lógica vive en archivos js-*.html > objeto Dashboard -->
+<!-- El <main class="tab-content"> que envuelve todas las vistas está en app.html -->
+<section class="tab-pane fade show active" id="dashboard-panel"
+  role="tabpanel" aria-labelledby="dashboard-tab" tabindex="0">
+  <div class="app-frame px-3 py-3">
+    <div class="form-surface">
+
+      <!-- Cabecera: mes actual + estado de carga -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <input type="month" id="dashboard-filtro-mes" class="form-control w-auto fw-bold" style="font-size:1.1rem; color:var(--color-primary); background-color: var(--color-bg); border-color: var(--color-border);" aria-label="Filtrar por mes y año">
+        <span class="small text-muted" id="dashboard-estado">Cargando…</span>
+      </div>
+
+      <!-- Balance total del mes -->
+      <div class="mb-3 pb-3 border-bottom">
+        <p class="form-text mb-1">Balance</p>
+        <p class="h3 fw-bold mb-0" id="dash-balance">—</p>
+      </div>
+
+      <!-- Tarjetas Ingresos / Gastos -->
+      <div class="row g-2 mb-4">
+        <div class="col-6">
+          <div class="p-3 rounded" style="background:var(--color-bg)">
+            <p class="form-text mb-1">Ingresos</p>
+            <p class="fw-600 mb-0 text-primary" id="dash-ingresos">—</p>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-3 rounded" style="background:var(--color-bg)">
+            <p class="form-text mb-1">Gastos</p>
+            <p class="fw-600 mb-0 text-danger" id="dash-gastos">—</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evolución (Gráfico por meses) -->
+      <h3 class="h6 mb-2 mt-2">Evolución</h3>
+      <div id="dash-chart-container" class="mb-4" style="position: relative; height: 250px; width: 100%;">
+        <canvas id="dash-chart"></canvas>
+      </div>
+
+
+      <!-- Asesoría IA Gemini (mini-chat) -->
+      <div class="mt-4 p-3 rounded" style="background: var(--color-bg); border: 1px solid var(--color-border);">
+        <h3 class="h6 mb-2"><i class="bi bi-robot text-primary"></i> Asesor Financiero IA</h3>
+        <p class="small text-muted mb-3">Haz preguntas sobre tus finanzas y recibe respuestas con tus datos reales usando Google Gemini.</p>
+
+        <!-- Historial de la conversación -->
+        <div id="ai-chat" class="mb-2 d-flex flex-column gap-2" style="max-height: 320px; overflow-y: auto; min-height: 80px;"
+          role="log" aria-live="polite" aria-label="Conversación con el asesor IA"></div>
+
+        <!-- Sugerencias -->
+        <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
+          <button class="btn btn-outline-secondary btn-sm" id="chip-resumen" type="button">Resumen de mi mes</button>
+          <button class="btn btn-outline-secondary btn-sm" id="chip-deudas" type="button">¿Cuánto debo y a quién?</button>
+          <button class="btn btn-outline-danger btn-sm ms-auto" id="ai-clear" type="button"
+            title="Borrar la conversación y empezar de nuevo">
+            <i class="bi bi-trash3" aria-hidden="true"></i> Limpiar
+          </button>
+        </div>
+
+        <!-- Entrada del usuario -->
+        <form id="ai-chat-form" class="d-flex gap-2" autocomplete="off">
+          <input type="text" id="ai-input" class="form-control form-control-sm"
+            placeholder="Ej. ¿En qué gasté más este mes?" maxlength="500" aria-label="Escribe tu pregunta">
+          <button class="btn btn-primary btn-sm px-3" type="submit" id="ai-send">Enviar</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
