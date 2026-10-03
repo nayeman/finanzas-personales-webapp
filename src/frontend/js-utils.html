@@ -66,10 +66,32 @@
     }
 
     /**
+     * Resalta un dato dentro de los mensajes del modal de confirmación:
+     * negrita y letra más grande para identificarlo de un vistazo.
+     * Escapa el valor, así que es seguro inyectarlo con innerHTML.
+     * @param {*} texto Dato a resaltar (nombre, monto, fecha…).
+     * @returns {string} HTML con el valor envuelto en <strong class="fs-5">.
+     */
+    function resaltar(texto) {
+        return `<strong class="fs-5">${esc(texto)}</strong>`;
+    }
+
+    /**
+     * Convierte una fecha ISO yyyy-MM-dd a dd/mm/aaaa para mostrarla en la UI.
+     * @param {*} iso Fecha en formato yyyy-MM-dd.
+     * @returns {string} Ej. "03/10/2026" (o el valor original si no es válida).
+     */
+    function fechaCorta(iso) {
+        const p = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
+        return p ? `${p[3]}/${p[2]}/${p[1]}` : String(iso || "");
+    }
+
+    /**
      * Modal global de confirmación para el CRUD (crear / actualizar / eliminar).
      * Uso: Confirmar.mostrar({ titulo, mensaje, textoOk, claseOk, onConfirmar })
-     * El callback recibe este mismo objeto y debe llamar a Confirmar.cerrar()
-     * en éxito o Confirmar.fallo(err) en error.
+     * `mensaje` se inyecta como HTML: los datos dinámicos deben venir escapados
+     * con esc() o resaltar() (que ya escapa). El callback debe llamar a
+     * Confirmar.cerrar() en éxito o Confirmar.fallo(err) en error.
      */
     const Confirmar = {
         accion:    null,
@@ -102,7 +124,7 @@
             this.procesando = opciones.textoProcesando || "Procesando…";
 
             this.el.titulo.textContent  = opciones.titulo;
-            this.el.mensaje.textContent = opciones.mensaje;
+            this.el.mensaje.innerHTML   = opciones.mensaje;
             this.el.error.textContent   = "";
             this.el.error.classList.add("d-none");
             this.el.ok.textContent      = this.textoOk;

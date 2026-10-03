@@ -103,11 +103,19 @@
 
             const esEdicion = this.editMode;
 
+            const detalle = `${resaltar(formatCOP(data.valor))} · ${resaltar(capitalize(data.tipo))} · ${resaltar(capitalize(data.categoria))} · ${resaltar(fechaCorta(data.fecha))}`;
+
             Confirmar.mostrar({
                 titulo: esEdicion ? "Actualizar registro" : "Crear registro",
                 mensaje: esEdicion
-                    ? `¿Seguro que quieres actualizar este movimiento de ${formatCOP(data.valor)}? Los cambios quedarán guardados en tu historial.`
-                    : `¿Seguro que quieres guardar este movimiento de ${formatCOP(data.valor)}? Se registrará en tu historial.`,
+                    ? `¿Seguro que quieres actualizar este movimiento?
+                        <div class="small text-muted mt-2 mb-1">Movimiento:</div>
+                        <div>${detalle}</div>
+                        <div class="mt-2">Los cambios quedarán guardados en tu historial.</div>`
+                    : `¿Seguro que quieres guardar este movimiento?
+                        <div class="small text-muted mt-2 mb-1">Movimiento:</div>
+                        <div>${detalle}</div>
+                        <div class="mt-2">Se registrará en tu historial.</div>`,
                 textoOk: esEdicion ? "Actualizar" : "Guardar",
                 claseOk: "btn-primary",
                 textoProcesando: "Guardando…",
