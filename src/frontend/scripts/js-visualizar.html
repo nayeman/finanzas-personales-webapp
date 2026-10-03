@@ -99,7 +99,7 @@
               </td>
               <td>
                 <div class="fw-bold small" style="color: var(--color-primary);">${capitalize(esc(r.categoria)) || "—"}</div>
-                <div class="small text-muted text-truncate" style="max-width: 150px;">${capitalize(esc(r.descripcion)) || "—"}</div>
+                <div class="small text-muted text-truncate" style="max-width: 180px;" title="${esc(r.descripcion)}">${capitalize(esc(r.descripcion)) || "—"}</div>
               </td>
               <td class="small text-end fw-600 ${String(r.tipo).toLowerCase() === 'ingreso' ? 'text-success' : 'text-danger'}">
                 ${String(r.tipo).toLowerCase() === 'gasto' ? '-' : ''}${formatCOP(r.valor)}
