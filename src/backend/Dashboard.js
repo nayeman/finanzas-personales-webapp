@@ -4,7 +4,7 @@
 
 /**
  * Devuelve el resumen financiero del mes en curso.
- * Lee los movimientos desde la fila 3 (la fila 2 está reservada para fórmulas).
+ * Lee los movimientos desde la fila 2 (la fila 1 es el encabezado).
  * @param {string} [filtroMes] Opcional. Mes en formato "yyyy-MM". Si no se envía, usa el mes actual.
  * @returns {{
  *   balance: number,
@@ -35,9 +35,9 @@ function getDashboard(filtroMes) {
     historialMap[diaStr] = { dia: diaStr, ingresos: 0, gastos: 0 };
   }
 
-  // La fila 2 está reservada para las fórmulas del libro: siempre se lee desde la fila 3.
-  if (movLast >= 3) {
-    const rows = movSheet.getRange(3, 1, movLast - 2, MOV_COL.valor + 1).getValues();
+  // Los datos empiezan en la fila 2 (la fila 1 es el encabezado).
+  if (movLast >= 2) {
+    const rows = movSheet.getRange(2, 1, movLast - 1, MOV_COL.valor + 1).getValues();
     rows.forEach((r) => {
       const fechaRaw = r[MOV_COL.fecha];
       if (!fechaRaw) return;

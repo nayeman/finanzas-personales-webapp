@@ -79,10 +79,10 @@ function deleteMovimiento(id) {
 function getMovimientos() {
   const sheet = getSheet(SHEET_NAMES.movimientos);
   const last  = sheet.getLastRow();
-  if (last < 3) return [];
+  if (last < 2) return [];
 
   const tz   = Session.getScriptTimeZone();
-  const rows = sheet.getRange(3, 1, last - 2, MOV_HEADERS.length).getValues();
+  const rows = sheet.getRange(2, 1, last - 1, MOV_HEADERS.length).getValues();
 
   return rows
     .filter((r) => r[MOV_COL.id] !== "")                 // excluir filas vacías
@@ -159,8 +159,8 @@ function _validateMovimiento(data) {
  */
 function _findRowById(sheet, id) {
   const last = sheet.getLastRow();
-  if (last < 3) return null;
-  const ids = sheet.getRange(3, 1, last - 2, 1).getValues().flat();
+  if (last < 2) return null;
+  const ids = sheet.getRange(2, 1, last - 1, 1).getValues().flat();
   const idx = ids.indexOf(id);
-  return idx === -1 ? null : idx + 3;
+  return idx === -1 ? null : idx + 2;
 }

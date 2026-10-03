@@ -5,7 +5,7 @@
 ## 🎯 Objetivos principales
 1. **Registro Rápido:** Formulario unificado para registrar ingresos y gastos sin abrir Google Sheets.
 2. **Dashboard Visual:** Resumen financiero del mes con gráficos de evolución por día y filtro histórico.
-3. **Gestión de Deudas:** Control exacto de cuánto se debe y a quién, con abonado manual; saldo y estado se recalculan con fórmulas de la hoja.
+3. **Gestión de Deudas:** Control exacto de cuánto se debe y a quién, con abonado manual; saldo y estado los calcula la app al guardar.
 4. **Análisis IA:** Integración nativa con Google Gemini para que actúe como asesor financiero personal usando los datos reales.
 
 ## 🏛️ Arquitectura
@@ -16,5 +16,5 @@
 
 ## 📦 Modelo de Datos Resumido
 * **Movimientos:** Registro histórico de cada transacción de dinero (Ingreso o Gasto). Tabla **independiente**: no guarda ninguna referencia a deudas.
-* **Deudas:** Registro maestro de pasivos. Define a quién se le debe, el total y el abonado (campos manuales); saldo y estado se calculan automáticamente en Sheets con fórmulas propias de la hoja (sin vínculos con Movimientos).
+* **Deudas:** Registro maestro de pasivos. Define a quién se le debe, el total y el abonado (campos manuales); saldo y estado los calcula la app con esa lógica y los guarda como valores en la hoja (sin vínculos con Movimientos).
 * **Categorias:** Tabla maestra simple (solo Nombre) para clasificar las transacciones de forma coherente.
