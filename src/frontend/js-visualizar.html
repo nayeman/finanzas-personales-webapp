@@ -9,7 +9,6 @@
         datosDeudas: [], // array de deudas cargado del backend
         pagina:   1,     // página actual (1-indexed)
         pageSize: 10,    // filas por página
-        deleteItem: null,  // objeto { type: "movimiento" | "deuda", id: string } pendiente de eliminación
 
         el: {
             body:          document.getElementById("dt-body"),
@@ -19,15 +18,10 @@
             pagination:    document.getElementById("dt-pagination"),
             selectAll:     document.getElementById("dt-select-all"),
             btnAgregar:    document.getElementById("btn-agregar"),
-            deleteModal:   document.getElementById("delete-confirmation"),
-            deleteError:   document.getElementById("delete-error"),
-            confirmDelete: document.getElementById("confirm-delete"),
             deudasBody:    document.getElementById("deudas-body"),
         },
 
         init() {
-            this.modal = bootstrap.Modal.getOrCreateInstance(this.el.deleteModal);
-
             // Botón Agregar → resetear formulario y navegar a Registrar
             this.el.btnAgregar.addEventListener("click", () => {
                 Registrar.resetForm();
@@ -53,8 +47,6 @@
                     cb.checked = e.target.checked;
                 });
             });
-
-            this.el.confirmDelete.addEventListener("click", () => this.confirmarEliminar());
 
             // Cargar datos la primera vez que se activa la pestaña
             document.getElementById("visualizar-tab").addEventListener("shown.bs.tab", () => {
@@ -251,52 +243,41 @@
         },
 
         /**
-         * Abre el modal de confirmación para eliminar.
+         * Abre el modal global de confirmación para eliminar.
          * @param {string} type "movimiento" o "deuda"
          * @param {string} id ID del registro a eliminar.
          */
         pedirConfirmacion(type, id) {
-            this.deleteItem = { type, id };
-            this.el.deleteError.classList.add("d-none");
-            this.el.deleteError.textContent = "";
-            this.modal.show();
+            Confirmar.mostrar({
+                titulo:  "Eliminar registro",
+                mensaje: "¿Seguro que quieres eliminar este registro? Esta acción no se puede deshacer.",
+                textoOk: "Eliminar",
+                claseOk: "btn-danger",
+                textoProcesando: "Eliminando…",
+                onConfirmar: () => this.eliminar(type, id),
+            });
         },
 
-        /** Llama al backend para eliminar el registro pendiente y recarga la tabla. */
-        confirmarEliminar() {
-            if (!this.deleteItem) return;
-            this.el.confirmDelete.disabled    = true;
-            this.el.confirmDelete.textContent = "Eliminando…";
+        /**
+         * Ejecuta la eliminación confirmada y recarga la tabla correspondiente.
+         * @param {string} type "movimiento" o "deuda"
+         * @param {string} id ID del registro a eliminar.
+         */
+        eliminar(type, id) {
+            const exito = () => {
+                Confirmar.cerrar();
+                showStatus({ className: "", textContent: "" },
+                    type === "movimiento" ? "Movimiento eliminado." : "Deuda eliminada.", "success");
+                if (type === "movimiento") this.recargar();
+                else this.recargarDeudas();
+            };
 
-            const req = this.deleteItem.type === "movimiento" 
-                ? google.script.run.withSuccessHandler(() => {
-                    this.onDeleteSuccess("Movimiento eliminado.");
-                  }).withFailureHandler((err) => this.onDeleteError(err)).deleteMovimiento(this.deleteItem.id)
-                : google.script.run.withSuccessHandler(() => {
-                    this.onDeleteSuccess("Deuda eliminada.");
-                  }).withFailureHandler((err) => this.onDeleteError(err)).deleteDeuda(this.deleteItem.id);
-        },
+            const run = google.script.run
+                .withSuccessHandler(exito)
+                .withFailureHandler((err) => Confirmar.fallo(err));
 
-        onDeleteSuccess(msg) {
-            this.modal.hide();
-            this.el.confirmDelete.disabled    = false;
-            this.el.confirmDelete.textContent = "Eliminar";
-            
-            showStatus({ className: "", textContent: "" }, msg, "success");
-            
-            if (this.deleteItem.type === "movimiento") {
-                this.recargar();
-            } else {
-                this.recargarDeudas();
-            }
-            this.deleteItem = null;
-        },
-
-        onDeleteError(err) {
-            this.el.confirmDelete.disabled    = false;
-            this.el.confirmDelete.textContent = "Eliminar";
-            this.el.deleteError.textContent   = err?.message || String(err) || "No se pudo eliminar.";
-            this.el.deleteError.classList.remove("d-none");
+            if (type === "movimiento") run.deleteMovimiento(id);
+            else run.deleteDeuda(id);
         }
     };
 </script>

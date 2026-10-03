@@ -83,17 +83,13 @@
         },
 
         /**
-         * Maneja el submit del formulario: valida, llama al backend y procesa la respuesta.
+         * Maneja el submit del formulario: valida, pide confirmación y llama al backend.
          * Usa saveMovimiento (alta) o updateMovimiento (edición) según editMode.
          * @param {Event} e
          */
         handleSubmit(e) {
             e.preventDefault();
             if (this.saving || !this.form.reportValidity()) return;
-
-            this.saving          = true;
-            this.submit.disabled = true;
-            this.submit.textContent = "Guardando…";
 
             const data = {
                 id:           this.idField.value,
@@ -105,14 +101,38 @@
                 metodo_pago:  document.getElementById("reg-metodo").value,
             };
 
-            const etiqueta = this.editMode ? "Actualizar" : "Guardar";
-            const fn       = this.editMode ? "updateMovimiento" : "saveMovimiento";
+            const esEdicion = this.editMode;
+
+            Confirmar.mostrar({
+                titulo: esEdicion ? "Actualizar registro" : "Crear registro",
+                mensaje: esEdicion
+                    ? `¿Seguro que quieres actualizar este movimiento de ${formatCOP(data.valor)}? Los cambios quedarán guardados en tu historial.`
+                    : `¿Seguro que quieres guardar este movimiento de ${formatCOP(data.valor)}? Se registrará en tu historial.`,
+                textoOk: esEdicion ? "Actualizar" : "Guardar",
+                claseOk: "btn-primary",
+                textoProcesando: "Guardando…",
+                onConfirmar: () => this.guardar(data, esEdicion),
+            });
+        },
+
+        /**
+         * Envía el movimiento confirmado al backend y procesa la respuesta.
+         * @param {Object} data Datos del formulario.
+         * @param {boolean} esEdicion true = updateMovimiento, false = saveMovimiento.
+         */
+        guardar(data, esEdicion) {
+            const etiqueta = esEdicion ? "Actualizar" : "Guardar";
+            const fn       = esEdicion ? "updateMovimiento" : "saveMovimiento";
+
+            this.saving          = true;
+            this.submit.disabled = true;
 
             google.script.run
                 .withSuccessHandler(() => {
                     this.saving          = false;
                     this.submit.disabled = false;
                     this.submit.textContent = etiqueta;
+                    Confirmar.cerrar();
                     showStatus(this.status, "Guardado correctamente.", "success");
                     this.resetForm();
                     Visualizar.recargar();
@@ -121,7 +141,9 @@
                     this.saving          = false;
                     this.submit.disabled = false;
                     this.submit.textContent = etiqueta;
-                    showStatus(this.status, err?.message || String(err) || "No se pudo guardar.", "danger");
+                    const mensaje = err?.message || String(err) || "No se pudo guardar.";
+                    Confirmar.fallo(mensaje);
+                    showStatus(this.status, mensaje, "danger");
                 })
                 [fn](data);
         },

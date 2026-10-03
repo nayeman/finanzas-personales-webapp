@@ -56,10 +56,6 @@
             e.preventDefault();
             if (this.saving || !this.form.reportValidity()) return;
 
-            this.saving = true;
-            this.submit.disabled = true;
-            this.submit.textContent = "Guardando…";
-
             const idValue = document.getElementById("deuda-id").value;
             const data = {
                 persona:      document.getElementById("deuda-persona").value,
@@ -69,10 +65,38 @@
             };
             if (idValue) data.id = idValue;
 
+            const esEdicion = Boolean(idValue);
+
+            Confirmar.mostrar({
+                titulo: esEdicion ? "Actualizar registro" : "Crear registro",
+                mensaje: esEdicion
+                    ? `¿Seguro que quieres actualizar la deuda de ${data.persona} por ${formatCOP(data.total_deuda)}? Los cambios quedarán guardados.`
+                    : `¿Seguro que quieres crear la deuda de ${data.persona} por ${formatCOP(data.total_deuda)}?`,
+                textoOk: esEdicion ? "Actualizar" : "Guardar",
+                claseOk: "btn-primary",
+                textoProcesando: "Guardando…",
+                onConfirmar: () => this.guardar(data, esEdicion),
+            });
+        },
+
+        /**
+         * Envía la deuda confirmada al backend y procesa la respuesta.
+         * saveDeuda hace upsert: crea si no trae id y actualiza si lo trae.
+         * @param {Object} data Datos del formulario.
+         * @param {boolean} esEdicion true si la deuda ya existía.
+         */
+        guardar(data, esEdicion) {
+            const etiqueta = esEdicion ? "Actualizar Deuda" : "Guardar Deuda";
+
+            this.saving          = true;
+            this.submit.disabled = true;
+
             google.script.run
                 .withSuccessHandler(() => {
-                    this.saving = false;
+                    this.saving          = false;
                     this.submit.disabled = false;
+                    this.submit.textContent = etiqueta;
+                    Confirmar.cerrar();
                     showStatus(this.status, "Deuda guardada correctamente.", "success");
                     this.resetForm();
                     // Opcional: Actualizar vista si están en Visualizar
@@ -81,10 +105,12 @@
                     }
                 })
                 .withFailureHandler((err) => {
-                    this.saving = false;
+                    this.saving          = false;
                     this.submit.disabled = false;
-                    this.submit.textContent = "Guardar Deuda";
-                    showStatus(this.status, err?.message || String(err) || "Error al crear.", "danger");
+                    this.submit.textContent = etiqueta;
+                    const mensaje = err?.message || String(err) || "No se pudo guardar la deuda.";
+                    Confirmar.fallo(mensaje);
+                    showStatus(this.status, mensaje, "danger");
                 })
                 .saveDeuda(data);
         },

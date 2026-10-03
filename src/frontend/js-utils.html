@@ -38,10 +38,106 @@
         }
     }
 
-    /** Formatea un número como pesos colombianos: $1.234.567 */
+    /**
+     * Formatea un número como pesos colombianos (COP): $1.234.567 / -$1.234.567
+     * @param {*} value Valor numérico.
+     * @returns {string}
+     */
     function formatCOP(value) {
-        return "$" + (Number(value) || 0).toLocaleString("es-CO");
+        const n = Number(value) || 0;
+        const absoluto = Math.abs(n).toLocaleString("es-CO");
+        return (n < 0 ? "-$" : "$") + absoluto;
     }
+
+    /** Nombres de los meses en español (índice 0 = Enero). */
+    const MESES_ES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    /**
+     * Convierte un mes en formato yyyy-MM a su nombre legible en español.
+     * @param {string} yyyyMM Mes en formato "2026-10".
+     * @returns {string} Ej. "Octubre 2026" (vacío si el valor no es válido).
+     */
+    function nombreMes(yyyyMM) {
+        const partes = /^(\d{4})-(\d{2})$/.exec(String(yyyyMM || ""));
+        if (!partes) return "";
+        const nombre = MESES_ES[Number(partes[2]) - 1];
+        return nombre ? `${nombre} ${partes[1]}` : "";
+    }
+
+    /**
+     * Modal global de confirmación para el CRUD (crear / actualizar / eliminar).
+     * Uso: Confirmar.mostrar({ titulo, mensaje, textoOk, claseOk, onConfirmar })
+     * El callback recibe este mismo objeto y debe llamar a Confirmar.cerrar()
+     * en éxito o Confirmar.fallo(err) en error.
+     */
+    const Confirmar = {
+        accion:    null,
+        instance:  null,
+        textoOk:   "Aceptar",
+        procesando: "Procesando…",
+
+        el: {
+            modal:   document.getElementById("app-confirm"),
+            titulo:  document.getElementById("app-confirm-title"),
+            mensaje: document.getElementById("app-confirm-message"),
+            error:   document.getElementById("app-confirm-error"),
+            ok:      document.getElementById("app-confirm-ok"),
+        },
+
+        init() {
+            this.instance = bootstrap.Modal.getOrCreateInstance(this.el.modal);
+            this.el.ok.addEventListener("click", () => this.confirmar());
+        },
+
+        /**
+         * Abre el modal con los textos dados y prepara la acción a confirmar.
+         * @param {{titulo:string, mensaje:string, textoOk?:string, claseOk?:string,
+         *          textoProcesando?:string, onConfirmar:Function}} opciones
+         */
+        mostrar(opciones) {
+            if (!this.instance) this.init();
+            this.accion     = opciones;
+            this.textoOk    = opciones.textoOk || "Aceptar";
+            this.procesando = opciones.textoProcesando || "Procesando…";
+
+            this.el.titulo.textContent  = opciones.titulo;
+            this.el.mensaje.textContent = opciones.mensaje;
+            this.el.error.textContent   = "";
+            this.el.error.classList.add("d-none");
+            this.el.ok.textContent      = this.textoOk;
+            this.el.ok.className        = `btn ${opciones.claseOk || "btn-primary"}`;
+            this.el.ok.disabled         = false;
+
+            this.instance.show();
+        },
+
+        /** Ejecuta la acción pendiente y bloquea el botón mientras responde. */
+        confirmar() {
+            const accion = this.accion;
+            if (!accion || typeof accion.onConfirmar !== "function") return;
+            this.el.ok.disabled = true;
+            this.el.ok.textContent = this.procesando;
+            accion.onConfirmar(this);
+        },
+
+        /** Oculta el modal y limpia el estado tras una operación exitosa. */
+        cerrar() {
+            if (this.instance) this.instance.hide();
+            this.accion = null;
+        },
+
+        /**
+         * Rehabilita el botón y muestra el error dentro del modal.
+         * @param {*} err Error devuelto por google.script.run.
+         */
+        fallo(err) {
+            this.el.ok.disabled    = false;
+            this.el.ok.textContent  = this.textoOk;
+            this.el.error.textContent = err?.message || String(err) || "No se pudo completar la operación.";
+            this.el.error.classList.remove("d-none");
+        },
+    };
 
     /**
      * Devuelve la fecha de hoy en formato yyyy-MM-dd.
