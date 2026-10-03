@@ -66,6 +66,16 @@
     }
 
     /**
+     * Abrevia un mes yyyy-MM a "Oct 2026" (3 letras del mes + año) para títulos.
+     * @param {*} yyyyMM Fecha en formato yyyy-MM.
+     * @returns {string} Ej. "Oct 2026" (o "" si no es válida).
+     */
+    function mesCorto(yyyyMM) {
+        const nombre = nombreMes(yyyyMM);
+        return nombre ? `${nombre.slice(0, 3)} ${nombre.split(" ").pop()}` : "";
+    }
+
+    /**
      * Resalta la acción dentro de los mensajes del modal de confirmación
      * (CREAR / ACTUALIZAR / ELIMINAR) en negrita, sin alterar el tamaño.
      * Escapa el valor, así que es seguro inyectarlo con innerHTML.

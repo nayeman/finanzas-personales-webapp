@@ -25,10 +25,8 @@
                 titulo: "dt-title",
                 filtroMes: (r, mes) => String(r.fecha || "").startsWith(mes),
                 tituloTexto: (mes) => {
-                    const nombre = nombreMes(mes);
-                    return nombre
-                        ? `Movimientos · ${nombre.slice(0, 3)} ${nombre.split(" ").pop()}`
-                        : "Movimientos · Todos los meses";
+                    const corto = mesCorto(mes);
+                    return corto ? `Movimientos · ${corto}` : "Movimientos · Todos los meses";
                 },
                 renderFila: (r) => this.crearFilaMovimiento(r),
             }).init();
@@ -42,6 +40,13 @@
                 selectAll: "dd-select-all",
                 colspan: 6,
                 vacio: "No hay deudas registradas.",
+                mes: "dd-filter-month",
+                titulo: "dt-title-deudas",
+                filtroMes: (d, mes) => !d.fecha || d.fecha.startsWith(mes),
+                tituloTexto: (mes) => {
+                    const corto = mesCorto(mes);
+                    return corto ? `Deudas Activas · ${corto}` : "Deudas Activas · Todos los meses";
+                },
                 renderFila: (d) => this.crearFilaDeuda(d),
             }).init();
 

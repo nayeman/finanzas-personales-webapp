@@ -66,7 +66,7 @@
         <!-- ── TAB: DEUDAS ── -->
         <div class="tab-pane fade" id="view-deudas" role="tabpanel" aria-labelledby="view-deudas-tab">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="app-eyebrow mb-0">Deudas Activas</h2>
+            <h2 class="app-eyebrow mb-0" id="dt-title-deudas">Deudas Activas</h2>
             <button class="btn btn-primary btn-sm" id="btn-agregar-deuda" type="button" onclick="document.getElementById('deudas-tab').click()">
               <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva Deuda
             </button>
@@ -83,7 +83,11 @@
               </select>
               <span class="small text-muted">entries</span>
             </div>
-            <input class="form-control form-control-sm" id="dd-search" placeholder="Search…" style="max-width:180px" aria-label="Buscar deuda">
+            <div class="d-flex align-items-center gap-2">
+              <input type="month" class="form-control form-control-sm" id="dd-filter-month" style="width:auto"
+                aria-label="Filtrar deudas por mes y año">
+              <input class="form-control form-control-sm" id="dd-search" placeholder="Search…" style="max-width:180px" aria-label="Buscar deuda">
+            </div>
           </div>
           <div class="table-responsive">
             <table class="table table-sm table-hover align-middle mb-2" id="deudas-table">
