@@ -134,7 +134,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatCOP(c.parsed.y)}` } }
+                    },
                     scales: {
                         y: { beginAtZero: true, ticks: { callback: (val) => formatCOP(val) } }
                     }
