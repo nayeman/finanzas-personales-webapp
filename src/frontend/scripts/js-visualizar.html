@@ -162,21 +162,15 @@
         },
 
         /**
-         * Abre el modal global de confirmación para eliminar con una frase
-         * corta que resume el registro (sujeto y monto en negrita).
+         * Abre el modal global de confirmación para eliminar (ambas tablas)
+         * con la frase genérica y la acción en negrita.
          * @param {string} type "movimiento" o "deuda"
          * @param {Object} registro Registro completo a eliminar.
          */
         pedirConfirmacion(type, registro) {
-            const esMovimiento = type === "movimiento";
-            const sujeto = esMovimiento
-                ? (capitalize(registro.descripcion) || capitalize(registro.categoria))
-                : registro.persona;
-            const monto = esMovimiento ? registro.valor : registro.total_deuda;
-
             Confirmar.mostrar({
                 titulo:  "Eliminar registro",
-                mensaje: `¿Eliminar el registro de ${resaltar(sujeto)} por ${resaltar(formatCOP(monto))}?`,
+                mensaje: `¿Seguro que quieres ${resaltar("ELIMINAR")} este registro?`,
                 textoOk: "Eliminar",
                 claseOk: "btn-danger",
                 textoProcesando: "Eliminando…",

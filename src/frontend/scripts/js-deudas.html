@@ -67,13 +67,11 @@
 
             const esEdicion = Boolean(idValue);
 
-            const frase = `la deuda de ${resaltar(data.persona)} por ${resaltar(formatCOP(data.total_deuda))}`;
-
             Confirmar.mostrar({
                 titulo: esEdicion ? "Actualizar registro" : "Crear registro",
                 mensaje: esEdicion
-                    ? `¿Actualizar ${frase}?`
-                    : `¿Crear ${frase}?`,
+                    ? `¿Seguro que quieres ${resaltar("ACTUALIZAR")} este registro?`
+                    : `¿Seguro que quieres ${resaltar("CREAR")} este registro?`,
                 textoOk: esEdicion ? "Actualizar" : "Crear",
                 claseOk: "btn-primary",
                 textoProcesando: "Guardando…",

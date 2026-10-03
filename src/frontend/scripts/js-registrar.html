@@ -103,13 +103,11 @@
 
             const esEdicion = this.editMode;
 
-            const frase = `el ${String(data.tipo).toLowerCase()} de ${resaltar(capitalize(data.categoria))} por ${resaltar(formatCOP(data.valor))} del ${resaltar(fechaCorta(data.fecha))}`;
-
             Confirmar.mostrar({
                 titulo: esEdicion ? "Actualizar registro" : "Crear registro",
                 mensaje: esEdicion
-                    ? `¿Actualizar ${frase}?`
-                    : `¿Crear ${frase}?`,
+                    ? `¿Seguro que quieres ${resaltar("ACTUALIZAR")} este registro?`
+                    : `¿Seguro que quieres ${resaltar("CREAR")} este registro?`,
                 textoOk: esEdicion ? "Actualizar" : "Crear",
                 claseOk: "btn-primary",
                 textoProcesando: "Guardando…",
