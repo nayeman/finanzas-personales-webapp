@@ -4,7 +4,7 @@
 
 /**
  * Instrucciones compartidas del asesor (una sola fuente de verdad).
- * Las usa preguntarAsesor (este archivo) y analizarFinanzas (Gemini.js),
+ * Las usa preguntarAsesor (este archivo) y analizarFinanzas (gemini.js),
  * que la referencian como global. Define rol, alcance financiero, formato,
  * validación de datos y protección contra inyecciones.
  */

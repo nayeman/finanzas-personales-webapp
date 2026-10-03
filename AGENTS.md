@@ -30,8 +30,8 @@ npx --yes @google/clasp version "<msg>" # instantánea inmutable
 - Apps Script no tiene módulos: `sourceType: "script"` en `eslint.config.js` → **sin `import`/`export`**, todo en scope global.
 - `no-undef` es **error** y los globos de Apps Script (`SpreadsheetApp`, `Logger`, …) están listados a mano en `eslint.config.js:11`. Si usas un servicio que falte (p. ej. `TrashApp`), añádelo a `globals` o declara `/* global X */`.
 - El lint solo cubre `src/**/*.js` (`eslint.config.js:6`): un `.js` en la raíz pasa desapercibido por CI.
-- Puntos de entrada se declaran en `/* exported ... */` al inicio del archivo — ver `src/backend/WebApp.js`.
-- Estructura de `src/`: `backend/` (`WebApp.js` y `Utils.js` en la raíz; capas en `sheets/` y `ai/`) y `frontend/` (`app.html` en la raíz; maquetación en `layout/`, pestañas en `pages/`, lógica en `scripts/`). Los parciales se piden con la ruta relativa a `frontend/`: `includePartial("scripts/js-tabla")`.
+- Puntos de entrada se declaran en `/* exported ... */` al inicio del archivo — ver `src/backend/main.js`.
+- Estructura de `src/`: `backend/` (`main.js` y `utils.js` en la raíz; capas en `sheets/` y `ai/`, todo en minúsculas) y `frontend/` (`app.html` en la raíz; maquetación en `layout/`, pestañas en `pages/`, lógica en `scripts/`). Los parciales se piden con la ruta relativa a `frontend/`: `includePartial("scripts/js-tabla")`.
 - Tipos/autocompletado: `jsconfig.json` con `checkJs` + `node_modules/@types/google-apps-script`. Ese `node_modules` **no se instala con npm**: se descarga con un `curl` (ver `docs/004-guias/03-autocompletado-lsp.md`). Si el LSP no resuelve `SpreadsheetApp`, reinstala esos tipos.
 
 ## Clasping

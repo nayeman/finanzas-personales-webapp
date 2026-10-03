@@ -5,7 +5,7 @@
 
 /**
  * Columnas de la hoja Movimientos en orden.
- * Exportado para que otros módulos (Dashboard.js) puedan derivar índices sin números mágicos.
+ * Exportado para que otros módulos (dashboard.js) puedan derivar índices sin números mágicos.
  */
 const MOV_HEADERS = ["id", "fecha", "tipo", "categoria", "descripcion", "valor", "metodo_pago"];
 

@@ -21,22 +21,22 @@ control-renal-diario/
 ├── src/
 │   ├── appsscript.json     # manifiesto Apps Script
 │   ├── backend/
-│   │   ├── Categorias.js   # Manejo de la hoja Categorias
-│   │   ├── Dashboard.js    # Lógica y cálculos del resumen financiero
-│   │   ├── Deudas.js       # Manejo de deudas y saldos
-│   │   ├── Gemini.js       # Integración con Google Gemini AI
-│   │   ├── Movimientos.js  # CRUD histórico de ingresos y gastos
-│   │   ├── Sheets.js       # Constantes y helper para abrir hojas
-│   │   ├── Utils.js        # Helpers genéricos (fechas, etc)
-│   │   └── WebApp.js       # Punto de entrada web e inclusión de parciales
+│   │   ├── main.js          # Punto de entrada web (doGet) e inclusión de parciales
+│   │   ├── utils.js         # Helpers genéricos (fechas, etc)
+│   │   ├── sheets/
+│   │   │   ├── sheets.js    # Constantes y helper para abrir hojas
+│   │   │   ├── movimientos.js  # CRUD histórico de ingresos y gastos
+│   │   │   ├── deudas.js    # Manejo de deudas y saldos
+│   │   │   ├── dashboard.js # Lógica y cálculos del resumen financiero
+│   │   │   └── categorias.js # Manejo de la hoja Categorias
+│   │   └── ai/
+│   │       ├── gemini.js    # Integración con Google Gemini AI
+│   │       └── asesoria.js  # Asesor IA (preguntarAsesor)
 │   └── frontend/
 │       ├── app.html         # Plantilla principal
-│       ├── dashboard.html   # Vista resumen (HTML)
-│       ├── deudas.html      # Formulario nueva deuda (HTML)
-│       ├── registrar.html   # Formulario movimientos (HTML)
-│       ├── visualizar.html  # Tablas de historial (HTML)
-│       ├── header.html / footer.html / css.html
-│       └── js-*.html        # Lógica de cada módulo frontend
+│       ├── layout/          # header.html, footer.html, css.html
+│       ├── pages/           # dashboard, registrar, deudas, visualizar (HTML)
+│       └── scripts/         # js-*.html, lógica de cada módulo
 ├── docs/
 │   └── 004-guias/          # estas guías
 └── .github/workflows/      # CI (ci.yml); deploy.yml solo en copias privadas

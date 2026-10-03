@@ -36,7 +36,7 @@ curl -sL https://registry.npmjs.org/@types/google-apps-script/-/google-apps-scri
 
 ## 3. Verificar el autocompletado
 
-1. Abrir `src/backend/WebApp.js`.
+1. Abrir `src/backend/main.js`.
 2. Escribir `SpreadsheetApp.` → el editor (LSP) debe ofrecer `getActiveSpreadsheet()`, `getActive()`, etc.
 
 ## 4. Habilitar el LSP en opencode
