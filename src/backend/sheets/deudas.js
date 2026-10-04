@@ -1,6 +1,6 @@
 // CRUD de deudas en la hoja Deudas.
 /* exported saveDeuda, getDeudas, deleteDeuda, DEUDAS_HEADERS, DEUDAS_COL */
-/* global getSheet, SHEET_NAMES, LockService, parseNumber, Session, Utilities */
+/* global getSheet, SHEET_NAMES, LockService, parseNumber, Session, Utilities, isValidDate */
 
 const DEUDAS_HEADERS = ["id", "persona", "categoria", "total_deuda", "abonado", "saldo", "estado", "fecha"];
 const DEUDAS_COL = DEUDAS_HEADERS.reduce((acc, h, i) => { acc[h] = i; return acc; }, {});
@@ -48,7 +48,7 @@ function _asegurarCabeceraFecha(sheet) {
  * Guarda una deuda en la hoja (crea si no trae id y no existe; si no, actualiza).
  * Escribe las 8 columnas A-H; saldo (F) y estado (G) los calcula la app
  * con _saldoEstado: la hoja no contiene fórmulas.
- * @param {{ id?:string, persona:string, categoria?:string, total_deuda:string|number, abonado?:string|number }} data
+ * @param {{ id?:string, persona:string, categoria?:string, total_deuda:string|number, abonado?:string|number, fecha?:string }} data
  * @returns {{ id: string }} ID de la deuda creada o actualizada.
  * @throws {Error} Si los datos son inválidos o el abonado es negativo.
  */
@@ -86,13 +86,19 @@ function saveDeuda(data) {
       }
     }
 
-    // Fecha de registro (H): una nueva es hoy; una existente conserva la suya
-    // (si está vacía se rellena con hoy para migrar filas antiguas).
+    // Fecha (H): la que envía el formulario si es válida; una nueva sin fecha
+    // es hoy; una existente conserva la suya (si está vacía se rellena con hoy
+    // para migrar filas antiguas).
     let fecha = "";
     if (targetRow === -1) {
       targetRow = sheet.getLastRow() + 1;
     } else {
       fecha = _fechaISO(sheet.getRange(targetRow, DEUDAS_COL.fecha + 1).getValue());
+    }
+    const fechaEnviada = String(data.fecha || "").trim();
+    if (fechaEnviada) {
+      if (!isValidDate(fechaEnviada)) throw new Error("La fecha no es válida.");
+      fecha = fechaEnviada;
     }
     if (!fecha) fecha = _hoyISO();
     _asegurarCabeceraFecha(sheet);

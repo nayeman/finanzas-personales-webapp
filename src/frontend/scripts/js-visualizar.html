@@ -39,7 +39,7 @@
                 info: "dd-info",
                 pagination: "dd-pagination",
                 selectAll: "dd-select-all",
-                colspan: 6,
+                colspan: 7,
                 vacio: "No hay deudas registradas.",
                 mes: "dd-filter-month",
                 titulo: "dt-title-deudas",
@@ -140,6 +140,7 @@
             const progress = d.total_deuda > 0 ? (d.abonado / d.total_deuda) * 100 : 0;
             tr.innerHTML = `
               <td class="d-none d-md-table-cell"><input type="checkbox" class="dt-row-check" value="${esc(d.id)}" aria-label="Seleccionar fila"></td>
+              <td class="small text-nowrap">${esc(d.fecha) || "—"}</td>
               <td class="fw-bold small" style="color: var(--color-primary);">${esc(d.persona)}</td>
               <td class="small text-end fw-600">${formatCOP(d.total_deuda)}</td>
               <td class="small text-end text-success">${formatCOP(d.abonado)}</td>

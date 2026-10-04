@@ -40,7 +40,7 @@ Registro maestro de pasivos.
 | abonado        | Número (manual)   | **Campo manual** (default 0): lo escribe la app.        |
 | saldo          | Número (app)       | *Lo calcula la app*: `total_deuda` - `abonado`.          |
 | estado         | Texto (app)        | *Lo calcula la app*: `Pagado` si saldo ≤ 0, si no `Pendiente`. |
-| fecha          | Texto (fecha)      | Fecha de registro en `yyyy-MM-dd` (la pone la app al crear; alimenta el filtro por mes de la pestaña Visualizar). |
+| fecha          | Texto (fecha)      | Fecha en `yyyy-MM-dd` (campo del formulario con default hoy; se muestra en la tabla de Deudas de Visualizar y alimenta el filtro por mes). |
 
 > La hoja **no contiene fórmulas**: los datos empiezan en la fila 2 (la fila 1 es el encabezado) en `Movimientos` y `Deudas`, y la app escribe saldo/estado como valores planos.
 
@@ -68,7 +68,7 @@ El backend escribe las 8 columnas de `Deudas`:
 
 - `saveDeuda()` escribe A-H (`id`, `persona`, `categoria`, `total_deuda`, `abonado`, `saldo`, `estado`, `fecha`); F y G llevan los valores calculados por `_saldoEstado()`.
 - `abonado` es un **campo manual del formulario** (default `0`, no puede ser negativo ni superar `total_deuda`).
-- `fecha` (H): la pone la app al crear (`yyyy-MM-dd`); al actualizar se conserva la existente y solo se rellena si estaba vacía. `getDeudas()` lee A-H y vuelve a calcular saldo/estado en JS: la lectura tampoco depende de la hoja para esos dos campos.
+- `fecha` (H): la envía el formulario en `yyyy-MM-dd` (se usa si es válida); si viene vacía, al crear se pone hoy y al actualizar se conserva la existente (solo se rellena si estaba vacía). `getDeudas()` lee A-H y vuelve a calcular saldo/estado en JS: la lectura tampoco depende de la hoja para esos dos campos.
 - Validaciones de `saveDeuda()`: `abonado >= 0` y `abonado <= total_deuda`.
 
 ---

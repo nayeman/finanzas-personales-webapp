@@ -10,6 +10,8 @@
 
         init() {
             this.cargarCategorias();
+            // Fecha por defecto: el día actual (igual que en Movimientos).
+            document.getElementById("deuda-fecha").value = todayISO();
             this.form.addEventListener("submit", (e) => this.handleSubmit(e));
         },
 
@@ -32,6 +34,8 @@
             document.getElementById("deuda-id").value = "";
             // Abonado: campo manual (default 0); saldo y estado los calcula la app al guardar
             document.getElementById("deuda-abonado").value = "";
+            // Fecha: vuelve al día actual al limpiar el formulario.
+            document.getElementById("deuda-fecha").value = todayISO();
             this.titulo.textContent = "Nueva Deuda";
             this.submit.textContent = "Guardar Deuda";
         },
@@ -44,6 +48,9 @@
             this.catSelect.value = d.categoria || "";
 
             document.getElementById("deuda-abonado").value = d.abonado || 0;
+
+            // Fecha editable: muestra la registrada (filas antiguas sin fecha → hoy).
+            document.getElementById("deuda-fecha").value = d.fecha || todayISO();
 
             this.titulo.textContent = "Editar Deuda";
             this.submit.textContent = "Actualizar Deuda";
@@ -62,6 +69,7 @@
                 total_deuda:  document.getElementById("deuda-total").value,
                 categoria:     document.getElementById("deuda-categoria").value,
                 abonado:      document.getElementById("deuda-abonado").value,
+                fecha:        document.getElementById("deuda-fecha").value,
             };
             if (idValue) data.id = idValue;
 
