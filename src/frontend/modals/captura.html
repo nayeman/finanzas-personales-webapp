@@ -1,0 +1,82 @@
+<!-- Parcial: modal global para capturar una factura/recibo con Gemini. -->
+<!-- La lógica vive en scripts/js-captura.html > objeto Captura -->
+<div class="modal fade" id="captura-modal" tabindex="-1" aria-labelledby="captura-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="captura-titulo">Capturar factura</h2>
+        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- Paso 1: elegir origen de la imagen -->
+        <div id="captura-paso-elegir">
+          <p class="small text-muted mb-3">Elige cómo quieres capturar la imagen.</p>
+          <div class="row g-2">
+            <div class="col-12 col-sm-6">
+              <button class="btn captura-opcion w-100" type="button" id="captura-opcion-foto">
+                <i class="bi bi-camera" aria-hidden="true"></i>
+                <span class="fw-semibold">Tomar foto</span>
+                <small>Usa la cámara de tu dispositivo.</small>
+              </button>
+            </div>
+            <div class="col-12 col-sm-6">
+              <button class="btn captura-opcion w-100" type="button" id="captura-opcion-galeria">
+                <i class="bi bi-image" aria-hidden="true"></i>
+                <span class="fw-semibold">Subir imagen</span>
+                <small>Selecciona una imagen guardada.</small>
+              </button>
+            </div>
+          </div>
+          <p class="small captura-nota mt-3 mb-0">
+            <i class="bi bi-stars" aria-hidden="true"></i>
+            Usaremos Gemini para leer la información de la factura o recibo y extraer los datos.
+          </p>
+        </div>
+
+        <!-- Paso 2: vista previa de la imagen elegida -->
+        <div id="captura-paso-preview" class="d-none">
+          <p class="small text-muted mb-2">Revisa la imagen antes de procesarla.</p>
+          <img id="captura-preview-img" class="captura-preview-img" alt="Vista previa de la factura">
+        </div>
+
+        <!-- Paso 3: procesando con Gemini -->
+        <div id="captura-paso-procesando" class="d-none text-center py-4">
+          <div class="spinner-border text-success" role="status" aria-hidden="true"></div>
+          <p class="mt-3 mb-0">Leyendo tu factura con Gemini…</p>
+        </div>
+
+        <!-- Paso 4: error (imagen inválida, no es factura, fallo de IA…) -->
+        <div id="captura-paso-error" class="d-none text-center py-2">
+          <i class="bi bi-exclamation-triangle captura-error-icono" aria-hidden="true"></i>
+          <p id="captura-error-mensaje" class="mb-0"></p>
+        </div>
+
+        <!-- Acciones de reintento (visibles en vista previa y error) -->
+        <div id="captura-reintentos" class="d-none mt-3">
+          <div class="d-flex flex-column flex-sm-row gap-2">
+            <button class="btn btn-outline-primary flex-fill" type="button" id="captura-btn-otra-foto">
+              <i class="bi bi-camera" aria-hidden="true"></i> Tomar otra foto
+            </button>
+            <button class="btn btn-outline-primary flex-fill" type="button" id="captura-btn-otra-imagen">
+              <i class="bi bi-image" aria-hidden="true"></i> Subir otra imagen
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer d-none" id="captura-footer">
+        <button class="btn btn-outline-secondary flex-fill" type="button" id="captura-btn-cancelar" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-primary flex-fill" type="button" id="captura-btn-continuar" hidden>
+          Continuar <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Orígenes de imagen: solo PNG y JPG -->
+<input type="file" id="captura-input-foto" accept="image/png,image/jpeg" capture="environment" hidden>
+<input type="file" id="captura-input-galeria" accept="image/png,image/jpeg" hidden>

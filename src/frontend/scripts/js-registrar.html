@@ -11,6 +11,8 @@
         idField:    document.getElementById("reg-id"),
         catSelect:  document.getElementById("reg-categoria"),
         fechaInput: document.getElementById("reg-fecha"),
+        aviso:      document.getElementById("registrar-aviso"),
+        btnCaptura: document.getElementById("btn-capturar-desde-form"),
         editMode:   false,
         saving:     false,
 
@@ -19,6 +21,8 @@
             this.cargarCategorias();
             this.form.addEventListener("submit", (e) => this.handleSubmit(e));
             this.cancelar.addEventListener("click", () => this.resetForm());
+            // Atajo a la captura con IA: alimenta este mismo formulario
+            this.btnCaptura.addEventListener("click", () => Captura.abrir());
             // Actualizar fecha al volver a la pestaña (solo en modo alta)
             document.getElementById("registrar-tab").addEventListener("shown.bs.tab", () => {
                 if (!this.editMode) this.fechaInput.value = todayISO();
@@ -54,6 +58,7 @@
             this.titulo.textContent      = "Editar movimiento";
             this.submit.textContent      = "Actualizar";
             this.cancelar.style.display  = "";
+            this.btnCaptura.style.display = "none"; // en edición no se puede precargar
             this.idField.value           = mov.id;
 
             document.getElementById("reg-tipo").value        = mov.tipo;
@@ -76,10 +81,45 @@
             this.titulo.textContent     = "Nuevo movimiento";
             this.submit.textContent     = "Guardar";
             this.cancelar.style.display = "none";
+            this.btnCaptura.style.display = "";
             this.idField.value          = "";
             this.status.textContent     = "";
+            this.aviso.classList.add("d-none");
             this.form.reset();
             this.fechaInput.value       = todayISO();
+        },
+
+        /**
+         * Rellena el formulario existente con los datos extraídos de una factura
+         * por Gemini. Solo precarga: el usuario revisa, corrige y guarda con el
+         * flujo manual de siempre (saveMovimiento). Los campos null quedan vacíos.
+         * @param {{ tipo:?string, categoria:?string, descripcion:?string, valor:?number, metodo_pago:?string, fecha:?string }} datos
+         */
+        precargarDesdeFactura(datos) {
+            this.resetForm();
+
+            if (datos.tipo) document.getElementById("reg-tipo").value = datos.tipo;
+            if (datos.valor) document.getElementById("reg-valor").value = datos.valor;
+            if (datos.fecha) this.fechaInput.value = datos.fecha;
+            document.getElementById("reg-descripcion").value = datos.descripcion || "";
+            document.getElementById("reg-metodo").value      = datos.metodo_pago || "";
+
+            // Un solo camino para cargar categorías y luego seleccionar la detectada
+            this.cargarCategorias(() => {
+                if (datos.categoria) this.catSelect.value = datos.categoria;
+                if (this.catSelect.value !== (datos.categoria || "")) {
+                    // Categoría no detectada o inválida: placeholder para que el usuario elija
+                    this.catSelect.prepend(new Option("Seleccionar categoría", "", true, true));
+                }
+            });
+
+            // Mostrar los campos avanzados si la factura trajo descripción o método
+            if (datos.descripcion || datos.metodo_pago) {
+                bootstrap.Collapse.getOrCreateInstance(document.getElementById("reg-advanced")).show();
+            }
+
+            this.aviso.classList.remove("d-none");
+            bootstrap.Tab.getOrCreateInstance(document.getElementById("registrar-tab")).show();
         },
 
         /**

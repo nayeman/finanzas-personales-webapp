@@ -217,4 +217,58 @@
 
   /* Tabla DataTable: sin estilos propios, usa table-sm table-hover de Bootstrap */
   #dt-table thead th { font-size: 0.82rem; font-weight: 600; }
+
+  /* ── Menú "+ Agregar" (dropdown): iconos alineados, hover verde ── */
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.92rem;
+  }
+  .dropdown-item:focus, .dropdown-item:hover {
+    background-color: rgba(var(--bs-primary-rgb), .12);
+    color: var(--bs-primary);
+  }
+
+  /* ── Modal "Capturar factura": tarjetas de opción con la estética de la app ── */
+  .captura-opcion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 1rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-align: center;
+  }
+  .captura-opcion i { font-size: 1.6rem; color: var(--bs-primary); }
+  .captura-opcion small { font-size: 0.78rem; color: var(--color-muted); }
+  .captura-opcion:hover {
+    border-color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), .06);
+  }
+
+  .captura-nota {
+    background: rgba(var(--bs-primary-rgb), .07);
+    border-radius: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    color: var(--color-muted);
+  }
+  .captura-nota i { color: var(--bs-primary); margin-right: 0.35rem; }
+
+  .captura-preview-img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 55vh;
+    margin: 0 auto;   /* imagen centrada arriba; el resto del modal queda a la izquierda */
+    object-fit: contain;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--color-bg);
+  }
+
+  .captura-error-icono { font-size: 2rem; color: #e67e22; }
 </style>
