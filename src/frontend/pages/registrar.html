@@ -5,8 +5,18 @@
   <div class="app-frame px-3 py-3">
     <div class="form-surface">
 
-      <div class="mb-3">
+      <div class="mb-3 d-flex justify-content-between align-items-center gap-2">
         <h2 class="h5 mb-0" id="registrar-titulo">Nuevo movimiento</h2>
+        <button class="btn btn-outline-primary btn-sm" id="btn-capturar-desde-form" type="button">
+          <i class="bi bi-camera" aria-hidden="true"></i> Capturar factura
+        </button>
+      </div>
+
+      <!-- Aviso de revisión: se muestra al precargar datos extraídos por Gemini -->
+      <div class="alert alert-warning d-none mb-3" id="registrar-aviso" role="alert">
+        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+        <strong>Revisa los datos antes de guardar.</strong>
+        La información extraída de la imagen puede contener errores. Verifica y corrige cualquier dato necesario.
       </div>
 
       <form id="registrar-form" novalidate>

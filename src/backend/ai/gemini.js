@@ -1,6 +1,9 @@
-// Integración con Google Gemini API para consejos financieros.
-/* exported analizarFinanzas, llamarGemini */
+// Integración con Google Gemini API para consejos financieros y extracción de facturas.
+/* exported analizarFinanzas, llamarGemini, llamarGeminiConImagen, GEMINI_MODELO */
 /* global getDashboard, PropertiesService, UrlFetchApp, ASESOR_PROMPT_REGLAS, formatCOPTexto */
+
+/** Modelo Gemini por defecto para todas las llamadas del proyecto. */
+const GEMINI_MODELO = "gemini-3.8-flash";
 
 /**
  * Llama a la API de Gemini con el resumen financiero actual (análisis rápido).
@@ -36,22 +39,57 @@ Pregunta o petición: ${pregunta || "Hazme un breve resumen de mi situación y d
  * @throws {Error} Si falta la API key o la API devuelve un error.
  */
 function llamarGemini(prompt, temperature = 0.5) {
+  return _fetchGemini([{ text: prompt }], { temperature });
+}
+
+/**
+ * Envía un prompt + imagen (base64) a la API de Gemini y devuelve la respuesta en texto.
+ * El prompt va primero y la imagen después (orden recomendado por Google).
+ * Pide JSON estructurado; el parsing y la validación de dominio corresponden
+ * a factura.js, no a este transporte.
+ * @param {string} prompt Texto completo del prompt.
+ * @param {string} imagenBase64 Imagen codificada en base64 (sin prefijo data:).
+ * @param {string} mimeType MIME de la imagen (image/png o image/jpeg).
+ * @param {{ temperature?: number, modelo?: string, responseSchema?: Object }} [opts]
+ *        temperature (def. 0), modelo (def. GEMINI_MODELO) y JSON Schema opcional.
+ * @returns {string} Respuesta en texto (JSON) generada por la IA.
+ * @throws {Error} Si falta la API key o la API devuelve un error.
+ */
+function llamarGeminiConImagen(prompt, imagenBase64, mimeType, opts = {}) {
+  const parts = [
+    { text: prompt },
+    { inline_data: { mime_type: mimeType, data: imagenBase64 } }
+  ];
+  const opciones = Object.assign({ temperature: 0, responseMimeType: "application/json" }, opts);
+  return _fetchGemini(parts, opciones);
+}
+
+/**
+ * Transporte común a la API de Gemini (UrlFetchApp + manejo de errores).
+ * La API key se lee de Script Properties y nunca se envía al frontend.
+ * @param {Array<Object>} parts Parts del contenido (texto y/o inline_data).
+ * @param {{ temperature?: number, modelo?: string, responseMimeType?: string, responseSchema?: Object }} [opts]
+ * @returns {string} Texto de la primera parte de la respuesta.
+ * @throws {Error} Si falta la key, la respuesta no es JSON o la API reporta error.
+ */
+function _fetchGemini(parts, opts = {}) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   if (!apiKey) {
     throw new Error("No hay GEMINI_API_KEY configurada. Pídele al administrador que la añada en Propiedades del script.");
   }
 
+  const modelo = opts.modelo || GEMINI_MODELO;
+  const generationConfig = { temperature: opts.temperature === undefined ? 0.5 : opts.temperature };
+  if (opts.responseMimeType) generationConfig.responseMimeType = opts.responseMimeType;
+  if (opts.responseSchema) generationConfig.responseSchema = opts.responseSchema;
+
   const payload = {
-    contents: [
-      {
-        parts: [{ text: prompt }]
-      }
-    ],
-    generationConfig: { temperature }
+    contents: [{ parts }],
+    generationConfig
   };
 
   const resp = UrlFetchApp.fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`,
     {
       method: 'post',
       contentType: 'application/json',
@@ -60,13 +98,21 @@ function llamarGemini(prompt, temperature = 0.5) {
     }
   );
 
-  const json = JSON.parse(resp.getContentText());
+  let json;
+  try {
+    json = JSON.parse(resp.getContentText());
+  } catch {
+    throw new Error("Respuesta inválida de Gemini.");
+  }
+
   if (json.error) {
     throw new Error(`Error de Gemini: ${json.error.message}`);
   }
 
-  if (json.candidates && json.candidates[0].content && json.candidates[0].content.parts) {
-    return json.candidates[0].content.parts[0].text;
+  const partes = json.candidates && json.candidates[0] &&
+    json.candidates[0].content && json.candidates[0].content.parts;
+  if (partes && partes[0] && typeof partes[0].text === "string") {
+    return partes[0].text;
   }
   return "No se pudo generar una respuesta.";
 }

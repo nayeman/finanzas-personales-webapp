@@ -21,9 +21,24 @@
         <div class="tab-pane fade show active" id="view-movimientos" role="tabpanel" aria-labelledby="view-movimientos-tab">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="app-section-title mb-0" id="dt-title">Movimientos</h2>
-            <button class="btn btn-primary btn-sm" id="btn-agregar" type="button">
-              <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar
-            </button>
+            <div class="btn-group" role="group" aria-label="Agregar registro">
+              <button class="btn btn-primary btn-sm dropdown-toggle" id="btn-agregar" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Agregar
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <button class="dropdown-item" id="btn-agregar-manual" type="button">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i> Agregar manualmente
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item" id="btn-capturar-factura" type="button">
+                    <i class="bi bi-camera" aria-hidden="true"></i> Capturar factura
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
           <div class="d-flex justify-content-between align-items-center mb-2 gap-2 flex-wrap">
             <div class="d-flex align-items-center gap-2">
@@ -94,6 +109,7 @@
               <thead class="table-light">
                 <tr>
                   <th scope="col" class="d-none d-md-table-cell" style="width: 40px;"><input type="checkbox" id="dd-select-all" aria-label="Seleccionar todas las deudas"></th>
+                  <th scope="col">Fecha</th>
                   <th scope="col">Persona/Entidad</th>
                   <th scope="col" class="text-end">Total</th>
                   <th scope="col" class="text-end">Abonado</th>

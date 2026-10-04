@@ -1,6 +1,6 @@
 // CRUD de movimientos (ingresos y gastos) en la hoja Movimientos.
 // Tabla independiente: no tiene relación con Deudas (sin deuda_id).
-/* exported saveMovimiento, updateMovimiento, deleteMovimiento, getMovimientos, MOV_HEADERS, MOV_COL */
+/* exported saveMovimiento, updateMovimiento, deleteMovimiento, getMovimientos, MOV_HEADERS, MOV_COL, METODOS_PAGO */
 /* global getSheet, SHEET_NAMES, LockService, Session, Utilities, parseNumber, isValidDate, escapeFormulaText */
 
 /**
@@ -15,6 +15,13 @@ const MOV_HEADERS = ["id", "fecha", "tipo", "categoria", "descripcion", "valor",
  * @type {Object.<string, number>}
  */
 const MOV_COL = MOV_HEADERS.reduce((acc, h, i) => { acc[h] = i; return acc; }, {});
+
+/**
+ * Catálogo de métodos de pago válidos (misma lista que el select del formulario).
+ * Fuente única en el backend: la usa factura.js para validar lo que extrae Gemini.
+ * @type {Array<string>}
+ */
+const METODOS_PAGO = ["Transferencia", "Tarjeta", "Efectivo", "Nequi", "Daviplata", "Otro"];
 
 // ── Funciones públicas ──
 

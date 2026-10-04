@@ -1,0 +1,179 @@
+<script>
+// Módulo Captura — flujo de captura de facturas con Gemini
+    // Responsabilidad: elegir origen de imagen, validarla, comprimirla,
+    // enviarla al backend y entregar los datos extraídos a Registrar.
+    // Nunca guarda movimientos: el guardado sigue siendo el formulario existente.
+
+    const Captura = {
+        instance:   null,
+        visible:    false,   // modal abierto (ignora respuestas tardías si el usuario canceló)
+        procesando: false,
+        imagen:     null,    // { base64, mime } de la imagen lista para enviar
+
+        MIME_PERMITIDOS: ["image/png", "image/jpeg", "image/jpg"],
+        TAMANO_MAXIMO:   10 * 1024 * 1024, // 10 MB antes de comprimir
+        LADO_MAXIMO:     1600,             // px del lado mayor tras comprimir
+        CALIDAD_JPEG:    0.8,
+
+        el: {
+            modal:          document.getElementById("captura-modal"),
+            titulo:         document.getElementById("captura-titulo"),
+            pasoElegir:     document.getElementById("captura-paso-elegir"),
+            pasoPreview:    document.getElementById("captura-paso-preview"),
+            pasoProcesando: document.getElementById("captura-paso-procesando"),
+            pasoError:      document.getElementById("captura-paso-error"),
+            previewImg:     document.getElementById("captura-preview-img"),
+            errorMensaje:   document.getElementById("captura-error-mensaje"),
+            reintentos:     document.getElementById("captura-reintentos"),
+            footer:         document.getElementById("captura-footer"),
+            btnContinuar:   document.getElementById("captura-btn-continuar"),
+            inputFoto:      document.getElementById("captura-input-foto"),
+            inputGaleria:   document.getElementById("captura-input-galeria"),
+        },
+
+        init() {
+            this.instance = bootstrap.Modal.getOrCreateInstance(this.el.modal);
+
+            // Paso 1: abrir el origen elegido
+            document.getElementById("captura-opcion-foto").addEventListener("click", () => this.el.inputFoto.click());
+            document.getElementById("captura-opcion-galeria").addEventListener("click", () => this.el.inputGaleria.click());
+
+            this.el.inputFoto.addEventListener("change", (e) => this.alElegirArchivo(e));
+            this.el.inputGaleria.addEventListener("change", (e) => this.alElegirArchivo(e));
+
+            // Reintentos desde vista previa o error
+            document.getElementById("captura-btn-otra-foto").addEventListener("click", () => this.el.inputFoto.click());
+            document.getElementById("captura-btn-otra-imagen").addEventListener("click", () => this.el.inputGaleria.click());
+
+            this.el.btnContinuar.addEventListener("click", () => this.procesar());
+
+            this.el.modal.addEventListener("hidden.bs.modal", () => this.reset());
+        },
+
+        /** Abre el modal en el paso inicial. */
+        abrir() {
+            this.reset();
+            this.mostrarPaso("elegir");
+            this.visible = true;
+            this.instance.show();
+        },
+
+        /** Limpia el estado interno (imagen, banderas). */
+        reset() {
+            this.visible     = false;
+            this.procesando  = false;
+            this.imagen      = null;
+            this.el.previewImg.removeAttribute("src");
+            this.el.inputFoto.value = "";
+            this.el.inputGaleria.value = "";
+        },
+
+        /**
+         * Cambia el paso visible del modal y actualiza los botones del footer.
+         * @param {"elegir"|"preview"|"procesando"|"error"} paso
+         */
+        mostrarPaso(paso) {
+            this.el.pasoElegir.classList.toggle("d-none", paso !== "elegir");
+            this.el.pasoPreview.classList.toggle("d-none", paso !== "preview");
+            this.el.pasoProcesando.classList.toggle("d-none", paso !== "procesando");
+            this.el.pasoError.classList.toggle("d-none", paso !== "error");
+
+            // Reintentos bajo la imagen o el mensaje; footer solo con Cancelar/Continuar
+            const hayImagen = paso === "preview" || paso === "error";
+            this.el.reintentos.classList.toggle("d-none", !hayImagen);
+            this.el.footer.classList.toggle("d-none", paso === "procesando");
+            this.el.btnContinuar.hidden  = paso !== "preview";
+
+            this.el.titulo.textContent = paso === "error" ? "No pudimos leer la factura" : "Capturar factura";
+        },
+
+        /**
+         * Valida y prepara el archivo elegido en el input.
+         * @param {Event} e Evento change del input file.
+         */
+        alElegirArchivo(e) {
+            const input = e.target;
+            const file  = input.files && input.files[0];
+            input.value = ""; // permitir volver a elegir el mismo archivo
+            if (!file) return;
+
+            if (!this.MIME_PERMITIDOS.includes(file.type)) {
+                this.mostrarError("Formato no admitido. Usa una imagen PNG o JPG.");
+                return;
+            }
+            if (file.size > this.TAMANO_MAXIMO) {
+                this.mostrarError("La imagen es demasiado grande. Usa una imagen de hasta 10 MB.");
+                return;
+            }
+
+            const lector = new FileReader();
+            lector.onerror = () => this.mostrarError("No se pudo leer la imagen. Intenta con otra.");
+            lector.onload  = () => this.prepararImagen(String(lector.result));
+            lector.readAsDataURL(file);
+        },
+
+        /**
+         * Decodifica la imagen, la comprime en canvas (máx. LADO_MAXIMO px, JPEG)
+         * y muestra la vista previa. Si el navegador no la decodifica → error.
+         * @param {string} dataUrl Imagen en data URL.
+         */
+        prepararImagen(dataUrl) {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const escala = Math.min(1, this.LADO_MAXIMO / Math.max(img.width, img.height));
+                    const lienzo = document.createElement("canvas");
+                    lienzo.width  = Math.max(1, Math.round(img.width * escala));
+                    lienzo.height = Math.max(1, Math.round(img.height * escala));
+
+                    const ctx = lienzo.getContext("2d");
+                    ctx.fillStyle = "#ffffff";               // fondo blanco (evita negro al pasarlo a JPEG)
+                    ctx.fillRect(0, 0, lienzo.width, lienzo.height);
+                    ctx.drawImage(img, 0, 0, lienzo.width, lienzo.height);
+
+                    const comprimida = lienzo.toDataURL("image/jpeg", this.CALIDAD_JPEG);
+                    this.imagen = {
+                        base64: comprimida.split(",")[1],
+                        mime:   "image/jpeg",
+                    };
+                    this.el.previewImg.src = comprimida;
+                    this.mostrarPaso("preview");
+                } catch (err) {
+                    this.mostrarError("No se pudo procesar la imagen. Usa una imagen PNG o JPG.");
+                }
+            };
+            img.onerror = () => this.mostrarError("No se pudo leer la imagen. Usa una imagen PNG o JPG.");
+            img.src = dataUrl;
+        },
+
+        /** Envía la imagen al backend y espera el JSON extraído por Gemini. */
+        procesar() {
+            if (!this.imagen || this.procesando) return;
+            this.procesando = true;
+            this.mostrarPaso("procesando");
+
+            google.script.run
+                .withSuccessHandler((datos) => {
+                    this.procesando = false;
+                    if (!this.visible) return;   // el usuario cerró el modal mientras procesaba
+                    this.instance.hide();
+                    Registrar.precargarDesdeFactura(datos);
+                })
+                .withFailureHandler((err) => {
+                    this.procesando = false;
+                    if (!this.visible) return;   // el usuario ya cerró el modal
+                    this.mostrarError(err?.message || String(err) || "No se pudo procesar la imagen.");
+                })
+                .extraerFactura(this.imagen.base64, this.imagen.mime);
+        },
+
+        /**
+         * Muestra el paso de error con el mensaje dado (reintentos disponibles).
+         * @param {string} mensaje
+         */
+        mostrarError(mensaje) {
+            this.el.errorMensaje.textContent = mensaje;
+            this.mostrarPaso("error");
+        },
+    };
+</script>
